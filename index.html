@@ -1,0 +1,2027 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <!-- 1. Icon cho iPhone/iPad (iOS) -->
+    <link rel="apple-touch-icon" href="https://i.ibb.co/CpjJQtd8/S-RANDOM.png">
+
+    <!-- 2. Icon cho Android/Chrome -->
+    <link rel="icon" type="image/png" href="https://i.ibb.co/CpjJQtd8/S-RANDOM.png">
+
+    <!-- 3. Tên hiển thị dưới Icon trên màn hình chính -->
+    <meta name="apple-mobile-web-app-title" content="S-RANDOM">
+
+    <!-- 4. Chế độ chạy như App (Ẩn thanh địa chỉ trình duyệt) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- 5. Màu sắc thanh trạng thái trên Mobile -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#020617">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>S-RANDOM Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root { --primary: #6366f1; --bg: #030712; }
+        #name-input {
+            min-height: 250px;
+        }
+
+        .lang-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+        }
+        .lang-item {
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 14px;
+        }
+        .lang-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+        .lang-item.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: #6366f1;
+            color: #818cf8;
+            font-weight: 700;
+        }
+
+        /* Thanh tìm kiếm trong Modal */
+        .search-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            width: 100%;
+            color: white;
+            outline: none;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .search-box:focus {
+            border-color: #6366f1;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .lang-list-container {
+            max-height: 400px; /* Giới hạn chiều cao để cuộn */
+            overflow-y: auto;
+        }
+
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg); 
+            color: #f8fafc; 
+            min-height: 100dvh; 
+            margin: 0;
+            overflow-x: hidden;
+            overflow-y: auto; /* Cho phép cuộn để xem danh sách ở dưới */
+        }
+
+        #modal-overlay, #winner-overlay, #lang-overlay {
+            position: fixed; 
+            inset: 0;
+            z-index: 9999;
+            display: none; /* Thêm lại dòng này để mặc định ẩn */
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Quan trọng: Để class flex của Tailwind có tác dụng trên ID */
+        #modal-overlay.flex, #winner-overlay.flex, #lang-overlay.flex {
+            display: flex !important;
+        }
+
+        @media (min-width: 1024px) {
+            body { overflow: hidden; height: 100vh; }
+        }
+        
+        .mesh-bg { position: fixed; inset: 0; z-index: -1; background: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(34, 211, 238, 0.1) 0px, transparent 50%); background-color: #020617; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        
+        #wheel-container { 
+            position: relative; 
+            width: 90vw; 
+            height: 90vw; 
+            max-width: 500px; 
+            max-height: 500px;
+            margin: 0 auto;
+            cursor: pointer; 
+        }
+
+        @media (min-width: 1024px) {
+            #wheel-container { 
+                width: 82vh; 
+                height: 82vh; 
+                max-width: 620px; 
+                max-height: 620px;
+            }
+        }
+
+        canvas { width: 100% !important; height: 100% !important; filter: drop-shadow(0 0 60px rgba(0,0,0,0.6)); }
+
+        /* Mũi tên cầu vồng 7 sắc cầu vồng */
+        .pointer-wrapper { 
+            position: absolute; 
+            right: -20px; 
+            top: 50%; 
+            transform: translateY(-50%); /* Cố định vị trí căn giữa ở đây */
+            z-index: 100; 
+            pointer-events: none; 
+        }
+        .pointer-arrow {
+            width: 70px; 
+            height: 50px; 
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff);
+            background-size: 400% 400%;
+            animation: rainbow-move 3s linear infinite;
+            clip-path: polygon(0 50%, 100% 0, 80% 50%, 100% 100%);
+            filter: drop-shadow(-5px 0 15px rgba(255, 255, 255, 0.3));
+            
+            /* GỐC XOAY: Khóa chặt ở mép phải (đuôi) */
+            transform-origin: 100% 50% !important; 
+            
+            /* Mặc định là không xoay */
+            transform: rotate(0deg);
+            
+            /* Tốc độ nảy cực nhanh để tạo cảm giác đanh */
+            transition: transform 0.05s cubic-bezier(0.1, 0.9, 0.2, 1);
+            will-change: transform;
+        }
+        @keyframes rainbow-move {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .pointer-tick {
+            transform: rotate(-20deg) !important; /* Mũi nhọn bên trái sẽ hất lên trên */
+        }
+
+        .guide-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20; pointer-events: none; }
+        .guide-text span {
+            font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 2px;
+            font-size: clamp(24px, 5vw, 45px); text-shadow: 0 0 30px rgba(0,0,0,0.9);
+            animation: breathe 2s infinite;
+        }
+        @keyframes breathe { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+
+        .tab-btn { padding: 14px 24px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748b; border-bottom: 3px solid transparent; transition: all 0.3s; }
+        .tab-btn.active { color: #818cf8; border-bottom-color: #6366f1; background: linear-gradient(to top, rgba(99, 102, 241, 0.1), transparent); }
+
+        textarea { 
+            background: #0f172a; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            color: #ffffff; 
+            border-radius: 24px; 
+            padding: 20px 24px !important; 
+            box-sizing: border-box !important;
+            font-size: 17px; 
+            font-weight: 600;
+            width: 100%; 
+            height: 100%; 
+            outline: none; 
+            resize: none; 
+            line-height: 1.6;
+            letter-spacing: 1px;
+            box-shadow: inset 0 4px 20px rgba(0,0,0,0.4);
+            min-height: 200px;
+            height: 100%;
+        }
+        textarea:focus { border-color: #6366f1; background: #111a2e; }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 10px; }
+        /* Hiệu ứng rung nhẹ vòng quay khi nhập liệu */
+        @keyframes wheel-glow {
+            0% { filter: drop-shadow(0 0 60px rgba(99, 102, 241, 0.4)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 80px rgba(99, 102, 241, 0.6)); transform: scale(1.01); }
+            100% { filter: drop-shadow(0 0 60px rgba(99, 102, 241, 0.4)); transform: scale(1); }
+        }
+        .wheel-syncing { animation: wheel-glow 0.3s ease-in-out; }
+
+        /* Container chứa các thông báo */
+        #toast-container {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 90%;
+            max-width: 400px;
+            pointer-events: none;
+        }
+
+        /* Thẻ thông báo hiện đại */
+        .elite-toast {
+            pointer-events: auto;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #6366f1; /* Màu chủ đạo */
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            animation: toast-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes toast-in {
+            from { transform: translateY(50px) scale(0.9); opacity: 0; filter: blur(10px); }
+            to { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+        }
+
+        .toast-exit {
+            animation: toast-out 0.5s ease forwards;
+        }
+
+        @keyframes toast-out {
+            to { transform: scale(0.9); opacity: 0; filter: blur(10px); }
+        }
+
+        /* Thanh tiến trình (Progress Bar) */
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #22d3ee);
+            width: 100%;
+            transform-origin: left;
+            animation: progress-load 3s linear forwards;
+        }
+
+        @keyframes progress-load {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0); }
+        }
+
+        .toast-icon {
+            font-size: 1.25rem;
+            background: rgba(99, 102, 241, 0.1);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            color: #818cf8;
+        }
+    </style>
+</head>
+<body>
+<div class="mesh-bg"></div>
+
+<!-- WINNER MODAL -->
+<div id="winner-overlay" class="fixed inset-0 z-[999] hidden items-center justify-center bg-black/95 backdrop-blur-xl">
+    <div class="glass p-12 rounded-[50px] border-2 border-indigo-500 text-center max-w-sm w-[90%] scale-0 transition-all duration-500" id="winner-card">
+        <div class="text-indigo-400 text-[10px] font-black tracking-[6px] mb-4 uppercase">KẾT QUẢ</div>
+        <h2 id="winner-name" class="text-6xl font-black italic text-white mb-10 break-words uppercase leading-tight">...</h2>
+        <button onclick="closeWinner()" class="w-full py-5 rounded-2xl bg-indigo-600 text-white font-black uppercase tracking-[3px] shadow-lg">ĐÓNG</button>
+    </div>
+</div>
+
+<div class="h-full flex flex-col">
+<!-- NAVBAR -->
+<nav class="h-16 flex items-center px-8 border-b border-white/5 shrink-0 justify-between">
+    <div class="flex items-center gap-3">
+        <!-- Logo Image với bo cong 4 góc -->
+        <div class="w-9 h-9 shrink-0 shadow-lg overflow-hidden rounded-xl">
+            <img src="https://i.ibb.co/CpjJQtd8/S-RANDOM.png" alt="S-Random Logo" class="w-full h-full object-cover"fetchpriority="high">
+        </div>
+        <span class="text-xl font-black tracking-tighter italic uppercase">S-RANDOM <span class="text-indigo-400">Pro</span></span>
+    </div>
+    <!-- Nút chọn ngôn ngữ -->
+    <button onclick="openLangModal()" class="h-10 px-3 rounded-full hover:bg-white/5 flex items-center gap-2 transition-all border border-white/5">
+        <i class="fa-solid fa-globe text-slate-400 text-lg"></i>
+        <!-- Thẻ span để hiển thị tên ngôn ngữ -->
+        <span id="current-lang-text" class="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+            Đang tải...
+        </span>
+    </button>
+</nav>
+
+    <!-- MAIN CONTENT -->
+<main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden p-4 lg:p-8 gap-6">
+    
+    <!-- TRÁI: ELITE WHEEL (Trên Mobile sẽ ở TRÊN) -->
+    <div class="flex-none lg:flex-[1.8] flex items-center justify-center relative order-1 lg:order-1 py-4">
+        <div id="wheel-container" onclick="spinWheel()">
+            <div id="guide-overlay" class="guide-text text-center"><span>CLICK ĐỂ QUAY</span></div>
+            <div class="pointer-wrapper">
+                <div id="pointer" class="pointer-arrow"></div>
+            </div>
+            <canvas id="wheel-canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- PHẢI: SIDEBAR (Trên Mobile sẽ ở DƯỚI) -->
+    <div class="flex-1 lg:max-w-md flex flex-col order-2 lg:order-2 mb-8 lg:mb-0">
+        <div class="glass rounded-[40px] flex flex-col h-full overflow-hidden shadow-2xl border border-white/5">
+            <!-- Tabs -->
+            <div class="flex items-center border-b border-white/5 bg-black/20 shrink-0">
+                <div id="tabs-list" class="flex overflow-x-auto custom-scrollbar flex-1 items-center">
+                    <!-- Tab buttons inserted here -->
+                </div>
+                <button onclick="addNewWheel()" class="px-5 py-4 text-indigo-400 hover:text-white transition-colors border-l border-white/5"><i class="fa-solid fa-plus"></i></button>
+            </div>
+
+            <!-- Input & Actions -->
+            <div class="p-5 flex flex-col gap-5 min-h-0">
+                <div class="flex gap-2 shrink-0">
+                    <button onclick="shuffleList()" class="flex-1 py-3 rounded-xl bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
+                        <i class="fa-solid fa-shuffle mr-2"></i>
+                        <span data-i18n="shuffle">Tráo đổi</span>
+                    </button>
+
+                    <button onclick="sortList()" class="flex-1 py-3 rounded-xl bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
+                        <i class="fa-solid fa-sort mr-2"></i>
+                        <span data-i18n="sort">Sắp xếp</span>
+                    </button>
+                </div>
+                
+                <div class="relative h-[250px] lg:flex-1">
+                    <textarea id="name-input" oninput="handleInput()" class="custom-scrollbar" placeholder="Nhập tên..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 shrink-0">
+                    <button onclick="renameActiveWheel()" class="py-4 rounded-2xl bg-white/5 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
+                        <i class="fa-solid fa-pen-to-square mr-2"></i>
+                        <span data-i18n="rename">Đổi tên</span>
+                    </button>
+
+                    <button onclick="deleteActiveWheel()" class="py-4 rounded-2xl bg-red-500/10 text-red-500 font-bold text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+                        <i class="fa-solid fa-trash mr-2"></i>
+                        <span data-i18n="delete">Xóa</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</div>
+
+<!-- MODERN CUSTOM MODAL -->
+<div id="modal-overlay" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/80 backdrop-blur-md">
+    <div class="glass p-8 rounded-[32px] border border-white/10 w-[90%] max-w-md scale-90 transition-all duration-300 opacity-0" id="modal-card">
+        <h3 id="modal-title" class="text-xl font-bold text-white mb-2 uppercase tracking-tight">Thông báo</h3>
+        <p id="modal-desc" class="text-slate-400 text-sm mb-6"></p>
+        
+        <div id="modal-input-wrapper" class="mb-6 hidden">
+            <input type="text" id="modal-input" 
+                class="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-indigo-500 transition-all font-semibold"
+                placeholder="Nhập nội dung...">
+        </div>
+
+        <div class="flex gap-3">
+            <!-- Nút Hủy bỏ -->
+            <button onclick="closeModal()" 
+                    class="flex-1 py-4 rounded-2xl bg-white/5 text-slate-300 font-bold text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all"
+                    data-i18n="cancel">
+                Hủy bỏ
+            </button>
+            
+            <!-- Nút Xác nhận -->
+            <button id="modal-confirm-btn" 
+                    class="flex-1 py-4 rounded-2xl bg-indigo-600 text-white font-bold text-[11px] uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:bg-indigo-500 transition-all"
+                    data-i18n="confirm">
+                Xác nhận
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- LANGUAGE MODAL -->
+<div id="lang-overlay" class="fixed inset-0 z-[2001] hidden items-center justify-center bg-black/80 backdrop-blur-md p-4">
+    <div class="glass w-full max-w-2xl rounded-[32px] border border-white/10 flex flex-col max-h-[90vh] overflow-hidden">
+        <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+            <h3 class="font-bold uppercase tracking-widest text-sm flex items-center gap-2">
+                <i class="fa-solid fa-globe text-indigo-400"></i> <span data-i18n="select_lang">Ngôn ngữ</span>
+            </h3>
+            <button onclick="closeLangModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto custom-scrollbar">
+            <!-- Thanh tìm kiếm -->
+            <input type="text" id="lang-search" class="search-box" placeholder="Tìm kiếm..." oninput="filterLanguages()">
+
+            <div id="recommended-section">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[3px] mb-4" data-i18n="recommended">Đề xuất</p>
+                <div class="lang-grid mb-8" id="lang-recommended"></div>
+            </div>
+
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[3px] mb-4" data-i18n="all_languages">Tất cả ngôn ngữ</p>
+            <div class="lang-grid" id="lang-all"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+let lastTickAngle = 0; // Theo dõi góc để bắt nhịp tick
+
+function checkTick(items) {
+    const arc = (Math.PI * 2) / items.length;
+    
+    // Offset 0.05 giúp mũi tên nảy ngay khi mép chấm bạc vừa chạm vào
+    const offset = 0.05; 
+    const currentTickIndex = Math.floor((currentAngle + offset) / arc);
+
+    if (currentTickIndex !== window.lastTickIndex) {
+        const pointer = document.getElementById("pointer");
+        
+        // Loại bỏ class cũ để reset hiệu ứng
+        pointer.classList.remove('pointer-tick');
+        
+        // Thủ thuật ép trình duyệt render lại (Reflow) để nảy liên tục không bị mất nhịp
+        void pointer.offsetWidth; 
+        
+        pointer.classList.add('pointer-tick');
+        
+        // Gỡ class nhanh (sau 50ms) để mũi tên đập xuống ngay lập tức
+        setTimeout(() => {
+            pointer.classList.remove('pointer-tick');
+        }, 50);
+        
+        window.lastTickIndex = currentTickIndex;
+    }
+}
+
+function updateAmbientRotation() {
+    if (!isSpinning) {
+        currentAngle += 0.003; // Tốc độ trôi chậm
+        
+        const wheel = wheels.find(w => w.id === activeId);
+        const items = wheel.items.length > 0 ? wheel.items : ["TRỐNG"];
+        
+        checkTick(items); // Gọi hàm kiểm tra tick
+        draw();
+    }
+    requestAnimationFrame(updateAmbientRotation);
+}
+
+// 1. Danh sách tên hiển thị của 65 ngôn ngữ
+const langNames = {
+    az: "Azərbaycanca", id: "Bahasa Indonesia", ms: "Bahasa Melayu", bs: "Bosanski", ca: "Català", 
+    cs: "Čeština", cy: "Cymraeg", da: "Dansk", de: "Deutsch", et: "Eesti", en: "English", 
+    pirate: "English (Pirate)", es: "Español", el: "Eλληνικά", fil: "Filipino", fr: "Français", 
+    gl: "Galego", hr: "Hrvatski", is: "Íslenskur", it: "Italiano", lv: "Latviešu", lt: "Lietuvių", 
+    hu: "Magyar", mk: "Mакедонски", mn: "Mонгол", nl: "Nederlands", no: "Norsk", uz: "Oʻzbekcha", 
+    pl: "Polski", pt: "Português", ru: "Pусский", ro: "Română", sq: "Shqip", sl: "Slovenščina", 
+    so: "Soomaali", sr: "Srpski", fi: "Suomi", sv: "Svenska", vi: "Tiếng Việt", tr: "Türkçe", 
+    be: "Беларуская", bg: "български", kk: "Қαзақ тілі", uk: "Українська", ka: "ქართული", 
+    hy: "Հայერენ", he: "עברית", ur: "اردو", ar: "العربية", sd: "سنڌي", fa: "فارسی", 
+    am: "አማርኛ", hi: "हिंदी", bn: "বাংলা", pa: "ਪੰਜਾਬੀ", gu: "ગુજરાતી", ta: "தமிழ்", 
+    kn: "ಕನ್ನಡ", ml: "മലയാളം", th: "ไทย", lo: "ພາສາລາວ", my: "မြန်မာစာ", ko: "한국어", 
+    ja: "日本語", zh: "简体中文", zht: "繁體中文"
+};
+
+// 2. Bộ từ điển (Hiện tại hỗ trợ VI, EN, FR. Các ngôn ngữ khác sẽ tự dùng EN)
+const i18n = {
+    vi: {
+        select_lang: "Ngôn ngữ", recommended: "Đề xuất", all_languages: "Tất cả ngôn ngữ",
+        spin: "CLICK ĐỂ QUAY", shuffle: "Tráo đổi", sort: "Sắp xếp", rename: "Đổi tên", delete: "Xóa",
+        placeholder: "Nhập tên mới...", result: "KẾT QUẢ", close: "ĐÓNG", cancel: "HỦY BỎ", confirm: "XÁC NHẬN",
+        confirm_del: "Bạn có chắc muốn xóa vòng quay này?", 
+        toast_shuffle: "ĐÃ TRÁO ĐỔI DANH SÁCH", 
+        toast_sort: "ĐÃ SẮP XẾP THỨ TỰ", 
+        toast_rename: "ĐÃ ĐỔI TÊN THÀNH", 
+        empty: "TRỐNG", undo: "Khôi phục",
+        toast_delete: "ĐÃ XÓA VÒNG QUAY", 
+        toast_undo_success: "ĐÃ KHÔI PHỤC THÀNH CÔNG",
+        error_min_wheel: "BẠN PHẢI GIỮ LẠI ÍT NHẤT 1 VÒNG QUAY", 
+        add_wheel: "ĐÃ THÊM VÒNG QUAY MỚI", 
+        default_wheel_name: "BÁNH XE",
+        default_items: ["Tên A", "Tên B", "Tên C", "Tên D", "Tên E", "Tên F", "Tên G", "Tên H"]
+    },
+    en: {
+        select_lang: "Language", recommended: "Recommended", all_languages: "All Languages",
+        spin: "CLICK TO SPIN", shuffle: "Shuffle", sort: "Sort", rename: "Rename", delete: "Delete",
+        placeholder: "Enter new name...", result: "RESULT", close: "CLOSE", cancel: "CANCEL", confirm: "CONFIRM",
+        confirm_del: "Are you sure you want to delete this wheel?", 
+        toast_shuffle: "LIST SHUFFLED", 
+        toast_sort: "LIST SORTED", 
+        toast_rename: "RENAMED TO", 
+        empty: "EMPTY", undo: "Undo",
+        toast_delete: "WHEEL DELETED", 
+        toast_undo_success: "UNDO SUCCESSFUL",
+        error_min_wheel: "YOU MUST KEEP AT LEAST 1 WHEEL", 
+        add_wheel: "NEW WHEEL ADDED", 
+        default_wheel_name: "WHEEL",
+        default_items: ["Item A", "Item B", "Item C", "Item D", "Item E", "Item F", "Item G", "Item H"]
+    },
+    az: {
+        select_lang: "Dil", recommended: "Tövsiyə olunan", all_languages: "Bütün dillər",
+        spin: "Fırlatmaq ÜÇÜN KLİK EDİN", shuffle: "Qarışdır", sort: "Sırala", rename: "Ad dəyiş", delete: "Sil",
+        placeholder: "Yeni ad daxil edin...", result: "NƏTİCƏ", close: "BAĞLA", cancel: "LƏĞV ET", confirm: "TƏSDİQ ET",
+        confirm_del: "Bu çarxı silmək istədiyinizə əminsiniz?", 
+        toast_shuffle: "SİYAHI QARIŞDIRILDI", 
+        toast_sort: "SİYAHI SIRALANDI", 
+        toast_rename: "ADI DƏYİŞDİRİLDİ:", 
+        empty: "BOŞ", undo: "Geri al",
+        toast_delete: "ÇARX SILINDI", 
+        toast_undo_success: "GERİ ALMA UĞURLU",
+        error_min_wheel: "ƏN AZI 1 ÇARX SAXLAMALISINIZ", 
+        add_wheel: "YENİ ÇARX ƏLAVƏ EDİLDİ", 
+        default_wheel_name: "ÇARX",
+        default_items: ["A Adı", "B Adı", "C Adı", "D Adı", "E Adı", "F Adı", "G Adı", "H Adı"]
+    },
+    id: {
+        select_lang: "Bahasa", recommended: "Rekomendasi", all_languages: "Semua Bahasa",
+        spin: "KLIK UNTUK MEMUTAR", shuffle: "Acak", sort: "Urutkan", rename: "Ganti Nama", delete: "Hapus",
+        placeholder: "Masukkan nama baru...", result: "HASIL", close: "TUTUP", cancel: "BATAL", confirm: "KONFIRMASI",
+        confirm_del: "Apakah Anda yakin ingin menghapus roda ini?", 
+        toast_shuffle: "DAFTAR DIACAK", 
+        toast_sort: "DAFTAR DIURUTKAN", 
+        toast_rename: "DIGANTI MENJADI", 
+        empty: "KOSONG", undo: "Urungkan",
+        toast_delete: "RODA DIHAPUS", 
+        toast_undo_success: "URUNGAN BERHASIL",
+        error_min_wheel: "ANDA HARUS MENYIMPAN SETIDAKNYA 1 RODA", 
+        add_wheel: "RODA BARU DITAMBAHKAN", 
+        default_wheel_name: "RODA",
+        default_items: ["Item A", "Item B", "Item C", "Item D", "Item E", "Item F", "Item G", "Item H"]
+    },
+    ms: {
+        select_lang: "Bahasa", recommended: "Disyorkan", all_languages: "Semua Bahasa",
+        spin: "KLIK UNTUK MEMUTAR", shuffle: "Kocok", sort: "Susun", rename: "Tukar Nama", delete: "Padam",
+        placeholder: "Masukkan nama baharu...", result: "KEPUTUSAN", close: "TUTUP", cancel: "BATAL", confirm: "SAHKAN",
+        confirm_del: "Adakah anda pasti mahu memadamkan roda ini?", 
+        toast_shuffle: "SENARAI DIKOCOK", 
+        toast_sort: "SENARAI DISUSUN", 
+        toast_rename: "DITUKAR NAMA KEPADA", 
+        empty: "KOSONG", undo: "Buat asal",
+        toast_delete: "RODA DIPADAM", 
+        toast_undo_success: "BUAT ASAL BERJAYA",
+        error_min_wheel: "ANDA MESTI MENYIMPAN SEKURANG-KURANGNYA 1 RODA", 
+        add_wheel: "RODA BAHARU DITAMBAH", 
+        default_wheel_name: "RODA",
+        default_items: ["Item A", "Item B", "Item C", "Item D", "Item E", "Item F", "Item G", "Item H"]
+    },
+    bs: {
+        select_lang: "Jezik", recommended: "Preporučeno", all_languages: "Svi jezici",
+        spin: "KLIKNITE ZA OKRETANJE", shuffle: "Izmiješaj", sort: "Sortiraj", rename: "Preimenuj", delete: "Izbriši",
+        placeholder: "Unesite novo ime...", result: "REZULTAT", close: "ZATVORI", cancel: "OTKAŽI", confirm: "POTVRDI",
+        confirm_del: "Da li ste sigurni da želite izbrisati ovaj kotač?", 
+        toast_shuffle: "LISTA IZMIJEŠANA", 
+        toast_sort: "LISTA SORTIRANA", 
+        toast_rename: "PREIMENOVANO U", 
+        empty: "PRAZNO", undo: "Poništi",
+        toast_delete: "KOTAČ IZBRISAN", 
+        toast_undo_success: "PONIŠTAVANJE USPJEŠNO",
+        error_min_wheel: "MORATE ZADRŽATI NAJMANJE 1 KOTAČ", 
+        add_wheel: "DODAT NOVI KOTAČ", 
+        default_wheel_name: "KOTAČ",
+        default_items: ["Stavka A", "Stavka B", "Stavka C", "Stavka D", "Stavka E", "Stavka F", "Stavka G", "Stavka H"]
+    },
+    ca: {
+        select_lang: "Idioma", recommended: "Recomanat", all_languages: "Tots els idiomes",
+        spin: "FEU CLIC PER GIRAR", shuffle: "Barrejar", sort: "Ordenar", rename: "Reanomenar", delete: "Suprimir",
+        placeholder: "Introdueix el nou nom...", result: "RESULTAT", close: "TANCAR", cancel: "CANCEL·LAR", confirm: "CONFIRMAR",
+        confirm_del: "Esteu segur que voleu suprimir aquesta ruleta?", 
+        toast_shuffle: "LLISTA BARRETJADA", 
+        toast_sort: "LLISTA ORDENADA", 
+        toast_rename: "REANOMENAT A", 
+        empty: "BUIDA", undo: "Desfer",
+        toast_delete: "RULETA SUPRIMIDA", 
+        toast_undo_success: "DESFER AMB ÈXIT",
+        error_min_wheel: "HAS DE CONSERVAR ALMENYS 1 RULETA", 
+        add_wheel: "RULETA NOVA AFEGIDA", 
+        default_wheel_name: "RULETA",
+        default_items: ["Element A", "Element B", "Element C", "Element D", "Element E", "Element F", "Element G", "Element H"]
+    },
+    cs: {
+        select_lang: "Jazyk", recommended: "Doporučeno", all_languages: "Všechny jazyky",
+        spin: "KLIKNUTÍM ZATOČÍTE", shuffle: "Zamíchat", sort: "Seřadit", rename: "Přejmenovat", delete: "Smazat",
+        placeholder: "Zadejte nový název...", result: "VÝSLEDEK", close: "ZAVŘÍT", cancel: "ZRUŠIT", confirm: "POTVRDIT",
+        confirm_del: "Opravdu chcete smazat toto kolo?", 
+        toast_shuffle: "SEZNAM ZAMÍCHÁN", 
+        toast_sort: "SEZNAM SEŘAZEN", 
+        toast_rename: "PŘEJMENOVÁNO NA", 
+        empty: "PRÁZDNÉ", undo: "Zpět",
+        toast_delete: "KOLO SMAZÁNO", 
+        toast_undo_success: "VRÁCENÍ ÚSPĚŠNÉ",
+        error_min_wheel: "MUSÍTE PONECHAT ALESPOŇ 1 KOLO", 
+        add_wheel: "PŘIDÁNO NOVÉ KOLO", 
+        default_wheel_name: "KOLO",
+        default_items: ["Položka A", "Položka B", "Položka C", "Položka D", "Položka E", "Položka F", "Položka G", "Položka H"]
+    },
+    cy: {
+        select_lang: "Iaith", recommended: "Argymhellir", all_languages: "Pob iaith",
+        spin: "CLICIWCH I TROI", shuffle: "Sgwyddo", sort: "Trefnu", rename: "Ailenwi", delete: "Dileu",
+        placeholder: "Rhowch enw newydd...", result: "CANLYNIAD", close: "CAU", cancel: "CANSLO", confirm: "CADARNHAU",
+        confirm_del: "Ydych chi'n siŵr eich bod am ddileu'r olwyn hon?", 
+        toast_shuffle: "RESTR WEDI'I SGWYDDO", 
+        toast_sort: "RESTR WEDI'I THREFNU", 
+        toast_rename: "WEDI'I AILENWI I", 
+        empty: "GWAG", undo: "Dadwneud",
+        toast_delete: "OLWYN WEDI'I DILEU", 
+        toast_undo_success: "DADWNEUD LLWYDDIANNUS",
+        error_min_wheel: "RHAID CADW O LEIAF 1 OLWYN", 
+        add_wheel: "OLWYN NEWYDD WEDI'I YCHWANEGU", 
+        default_wheel_name: "OLWYN",
+        default_items: ["Eitem A", "Eitem B", "Eitem C", "Eitem D", "Eitem E", "Eitem F", "Eitem G", "Eitem H"]
+    },
+    da: {
+        select_lang: "Sprog", recommended: "Anbefalet", all_languages: "Alle sprog",
+        spin: "KLIK FOR AT SNADRE", shuffle: "Bland", sort: "Sorter", rename: "Omdøb", delete: "Slet",
+        placeholder: "Indtast nyt navn...", result: "RESULTAT", close: "LUK", cancel: "ANNULLER", confirm: "BEKRÆFT",
+        confirm_del: "Er du sikker på, at du vil slette dette hjul?", 
+        toast_shuffle: "LISTE BLANDET", 
+        toast_sort: "LISTE SORTERET", 
+        toast_rename: "OMDØBT TIL", 
+        empty: "TOM", undo: "Fortryd",
+        toast_delete: "HJUL SLETTET", 
+        toast_undo_success: "FORTRYDELSE LYKKEDES",
+        error_min_wheel: "DU SKAL BEHOLDE MINDST 1 HJUL", 
+        add_wheel: "NYT HJUL TILFØJET", 
+        default_wheel_name: "HJUL",
+        default_items: ["Element A", "Element B", "Element C", "Element D", "Element E", "Element F", "Element G", "Element H"]
+    },
+    de: {
+        select_lang: "Sprache", recommended: "Empfohlen", all_languages: "Alle Sprachen",
+        spin: "ZUM DREHEN KLICKEN", shuffle: "Mischen", sort: "Sortieren", rename: "Umbenennen", delete: "Löschen",
+        placeholder: "Neuen Namen eingeben...", result: "ERGEBNIS", close: "SCHLIESSEN", cancel: "ABBRECHEN", confirm: "BESTÄTIGEN",
+        confirm_del: "Sind Sie sicher, dass Sie dieses Rad löschen möchten?", 
+        toast_shuffle: "LISTE GEMISCHT", 
+        toast_sort: "LISTE SORTIERT", 
+        toast_rename: "UMBENANNT IN", 
+        empty: "LEER", undo: "Rückgängig",
+        toast_delete: "RAD GELÖSCHT", 
+        toast_undo_success: "RÜCKGÄNGIG ERFOLGREICH",
+        error_min_wheel: "SIE MÜSSEN MINDESTENS 1 RAD BEHALTEN", 
+        add_wheel: "NEUES RAD HINZUGEFÜGT", 
+        default_wheel_name: "RAD",
+        default_items: ["Element A", "Element B", "Element C", "Element D", "Element E", "Element F", "Element G", "Element H"]
+    },
+    et: {
+        select_lang: "Keel", recommended: "Soovitatav", all_languages: "Kõik keeled",
+        spin: "PÖÖRAMISEKS KLÕPSA", shuffle: "Segamine", sort: "Sorteerimine", rename: "Ümbernimetamine", delete: "Kustutamine",
+        placeholder: "Sisesta uus nimi...", result: "TULEMUS", close: "SULGE", cancel: "TÜHISTA", confirm: "KINNITA",
+        confirm_del: "Kas oled kindel, et soovid selle ratta kustutada?", 
+        toast_shuffle: "NIMEKIRI SEGATI", 
+        toast_sort: "NIMEKIRI SORTEERITI", 
+        toast_rename: "ÜMBER NIMETATUD", 
+        empty: "TÜHI", undo: "Võta tagasi",
+        toast_delete: "RATAS KUSTUTATUD", 
+        toast_undo_success: "TAGASIVÕTMINE ÕNNESTUS",
+        error_min_wheel: "PEAD SÄILITAMA VÄHEMALT 1 RATTA", 
+        add_wheel: "LISATUD UUS RATAS", 
+        default_wheel_name: "RATAS",
+        default_items: ["Kirje A", "Kirje B", "Kirje C", "Kirje D", "Kirje E", "Kirje F", "Kirje G", "Kirje H"]
+    },
+    enPirate: {
+        select_lang: "Tongue", recommended: "Booty", all_languages: "All Scallywag Tongues",
+        spin: "CLICK TO SPIN YE SCURVY DOG", shuffle: "Shiver Me Timbers", sort: "Sort the Loot", rename: "Rechristen", delete: "Walk the Plank",
+        placeholder: "Scrawl new name...", result: "TREASURE", close: "BATTEN DOWN", cancel: "BELAY THAT", confirm: "ARRR!",
+        confirm_del: "Ye be sure ye want to send this wheel to Davy Jones' Locker?", 
+        toast_shuffle: "LIST BE SHIVERED", 
+        toast_sort: "LOOT BE SORTED", 
+        toast_rename: "RECHRISTENED TO", 
+        empty: "EMPTY AS A GHOST SHIP", undo: "Reverse the Plank",
+        toast_delete: "WHEEL BE SUNK TO DAVY JONES' LOCKER", 
+        toast_undo_success: "REVERSE THE PLANK BE SUCCESSFUL",
+        error_min_wheel: "YE MUST KEEP AT LEAST 1 WHEEL OR DAVY JONES WILL GET YE", 
+        add_wheel: "NEW WHEEL HOISTED ABOARD", 
+        default_wheel_name: "WHEEL",
+        default_items: ["Loot A", "Loot B", "Loot C", "Loot D", "Loot E", "Loot F", "Loot G", "Loot H"]
+    },
+    es: {
+        select_lang: "Idioma", recommended: "Recomendado", all_languages: "Todos los idiomas",
+        spin: "HAZ CLIC PARA GIRAR", shuffle: "Mezclar", sort: "Ordenar", rename: "Renombrar", delete: "Eliminar",
+        placeholder: "Ingrese nuevo nombre...", result: "RESULTADO", close: "CERRAR", cancel: "CANCELAR", confirm: "CONFIRMAR",
+        confirm_del: "¿Estás seguro de que quieres eliminar esta ruleta?", 
+        toast_shuffle: "LISTA MEZCLADA", 
+        toast_sort: "LISTA ORDENADA", 
+        toast_rename: "RENOMBRADO A", 
+        empty: "VACÍO", undo: "Deshacer",
+        toast_delete: "RULETA ELIMINADA", 
+        toast_undo_success: "DESHACER EXITOSO",
+        error_min_wheel: "DEBES MANTENER AL MENOS 1 RULETA", 
+        add_wheel: "NUEVA RULETA AGREGADA", 
+        default_wheel_name: "RULETA",
+        default_items: ["Ítem A", "Ítem B", "Ítem C", "Ítem D", "Ítem E", "Ítem F", "Ítem G", "Ítem H"]
+    },
+    el: {
+        select_lang: "Γλώσσα", recommended: "Προτεινόμενα", all_languages: "Όλες οι γλώσσες",
+        spin: "ΚΛΙΚ ΓΙΑ ΠΕΡΙΣΤΡΟΦΗ", shuffle: "Ανακάτεμα", sort: "Ταξινόμηση", rename: "Μετονομασία", delete: "Διαγραφή",
+        placeholder: "Εισάγετε νέο όνομα...", result: "ΑΠΟΤΕΛΕΣΜΑ", close: "ΚΛΕΙΣΙΜΟ", cancel: "ΑΚΥΡΩΣΗ", confirm: "ΕΠΙΒΕΒΑΙΩΣΗ",
+        confirm_del: "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον τροχό;", 
+        toast_shuffle: "Η ΛΙΣΤΑ ΑΝΑΚΑΤΕΥΤΗΚΕ", 
+        toast_sort: "Η ΛΙΣΤΑ ΤΑΞΙΝΟΜΗΘΗΚΕ", 
+        toast_rename: "ΜΕΤΟΝΟΜΑΣΤΗΚΕ ΣΕ", 
+        empty: "ΑΔΕΙΟ", undo: "Αναίρεση",
+        toast_delete: "ΤΡΟΧΟΣ ΔΙΑΓΡΑΦΗΚΕ", 
+        toast_undo_success: "ΕΠΙΤΥΧΗΣ ΑΝΑΙΡΕΣΗ",
+        error_min_wheel: "ΠΡΕΠΕΙ ΝΑ ΚΡΑΤΗΣΕΤΕ ΤΟΥΛΑΧΙΣΤΟΝ 1 ΤΡΟΧΟ", 
+        add_wheel: "ΠΡΟΣΤΕΘΗΚΕ ΝΕΟΣ ΤΡΟΧΟΣ", 
+        default_wheel_name: "ΤΡΟΧΟΣ",
+        default_items: ["Στοιχείο Α", "Στοιχείο Β", "Στοιχείο Γ", "Στοιχείο Δ", "Στοιχείο Ε", "Στοιχείο ΣΤ", "Στοιχείο Ζ", "Στοιχείο Η"]
+    },
+    fil: {
+        select_lang: "Wika", recommended: "Inirerekomenda", all_languages: "Lahat ng Wika",
+        spin: "I-CLICK PARA I-SPIN", shuffle: "I-shuffle", sort: "I-sort", rename: "Palitan ang Pangalan", delete: "Burahin",
+        placeholder: "Maglagay ng bagong pangalan...", result: "RESULTA", close: "ISARA", cancel: "KANSELAHIN", confirm: "KUMPIRMAHIN",
+        confirm_del: "Sigurado ka bang gusto mong burahin ang gulong na ito?", 
+        toast_shuffle: "NA-SHUFFLE ANG LISTAHAN", 
+        toast_sort: "NA-SORT ANG LISTAHAN", 
+        toast_rename: "PINALITAN NG PANGALAN SA", 
+        empty: "WALANG LAMAN", undo: "I-undo",
+        toast_delete: "NABURAHAN ANG GULONG", 
+        toast_undo_success: "MATAGUMPAY NA NA-UNDO",
+        error_min_wheel: "DAPAT MAGPANATILI NG HINDI BABABA SA 1 GULONG", 
+        add_wheel: "NADAGDAG ANG BAGONG GULONG", 
+        default_wheel_name: "GULONG",
+        default_items: ["Item A", "Item B", "Item C", "Item D", "Item E", "Item F", "Item G", "Item H"]
+    },
+    fr: {
+        select_lang: "Langue", recommended: "Recommandé", all_languages: "Toutes les langues",
+        spin: "CLIQUEZ POUR TOURNER", shuffle: "Mélanger", sort: "Trier", rename: "Renommer", delete: "Supprimer",
+        placeholder: "Entrez un nouveau nom...", result: "RÉSULTAT", close: "FERMER", cancel: "ANNULER", confirm: "CONFIRMER",
+        confirm_del: "Voulez-vous vraiment supprimer cette roue ?", 
+        toast_shuffle: "LISTE MÉLANGÉE", 
+        toast_sort: "LISTE TRIÉE", 
+        toast_rename: "RENOMMÉ EN", 
+        empty: "VIDE", undo: "Annuler",
+        toast_delete: "ROUE SUPPRIMÉE", 
+        toast_undo_success: "ANNULATION RÉUSSIE",
+        error_min_wheel: "VOUS DEVEZ CONSERVER AU MOINS 1 ROUE", 
+        add_wheel: "NOUVELLE ROUE AJOUTÉE", 
+        default_wheel_name: "ROUE",
+        default_items: ["Élément A", "Élément B", "Élément C", "Élément D", "Élément E", "Élément F", "Élément G", "Élément H"]
+    },
+    gl: {
+        select_lang: "Idioma", recommended: "Recomendado", all_languages: "Todos os idiomas",
+        spin: "CLIC PARA XIRAR", shuffle: "Barallar", sort: "Ordenar", rename: "Renomear", delete: "Eliminar",
+        placeholder: "Insire o novo nome...", result: "RESULTADO", close: "PECHAR", cancel: "CANCELAR", confirm: "CONFIRMAR",
+        confirm_del: "Estás seguro de que queres eliminar esta roda?", 
+        toast_shuffle: "LISTA BARRALLADA", 
+        toast_sort: "LISTA ORDENADA", 
+        toast_rename: "RENOMEADO A", 
+        empty: "BALEIRO", undo: "Desfacer",
+        toast_delete: "RODA ELIMINADA", 
+        toast_undo_success: "DESFACER CON ÉXITO",
+        error_min_wheel: "DEBES CONSERVAR POLO MENOS 1 RODA", 
+        add_wheel: "NOVA RODA ENGADIDA", 
+        default_wheel_name: "RODA",
+        default_items: ["Elemento A", "Elemento B", "Elemento C", "Elemento D", "Elemento E", "Elemento F", "Elemento G", "Elemento H"]
+    },
+    hr: {
+        select_lang: "Jezik", recommended: "Preporučeno", all_languages: "Svi jezici",
+        spin: "KLIKNITE ZA OKRETANJE", shuffle: "Izmiješaj", sort: "Sortiraj", rename: "Preimenuj", delete: "Izbriši",
+        placeholder: "Unesite novo ime...", result: "REZULTAT", close: "ZATVORI", cancel: "ODUSTANI", confirm: "POTVRDI",
+        confirm_del: "Jeste li sigurni da želite izbrisati ovaj kotač?", 
+        toast_shuffle: "POPIS IZMIJEŠAN", 
+        toast_sort: "POPIS SORTIRAN", 
+        toast_rename: "PREIMENOVANO U", 
+        empty: "PRAZNO", undo: "Poništi",
+        toast_delete: "KOTAČ IZBRISAN", 
+        toast_undo_success: "PONIŠTAVANJE USPJEŠNO",
+        error_min_wheel: "MORATE ZADRŽATI NAJMANJE 1 KOTAČ", 
+        add_wheel: "DODAN NOVI KOTAČ", 
+        default_wheel_name: "KOTAČ",
+        default_items: ["Stavka A", "Stavka B", "Stavka C", "Stavka D", "Stavka E", "Stavka F", "Stavka G", "Stavka H"]
+    },
+    is: {
+        select_lang: "Tungumál", recommended: "Mælt með", all_languages: "Öll tungumál",
+        spin: "SMELLA TIL AÐ SNAÚA", shuffle: "Blanda", sort: "Raða", rename: "Endurnefna", delete: "Eyða",
+        placeholder: "Sláðu inn nýtt nafn...", result: "NIÐURSTAÐA", close: "LOKA", cancel: "HÆTT VIÐ", confirm: "STAÐFESTA",
+        confirm_del: "Ertu viss um að þú viljir eyða þessum hjóli?", 
+        toast_shuffle: "LISTI BLANDADUR", 
+        toast_sort: "LISTI RAÐADUR", 
+        toast_rename: "ENDURNEFNT Í", 
+        empty: "TÓMT", undo: "Afturkalla",
+        toast_delete: "HJÓLI EYTT", 
+        toast_undo_success: "AFTURKÖLLUN TÓKST",
+        error_min_wheel: "ÞÚ VERÐUR AÐ GEYMA AÐ MINNSTA KOSTI 1 HJÓL", 
+        add_wheel: "NÝJU HJÓLI BÆTT VIÐ", 
+        default_wheel_name: "HJÓL",
+        default_items: ["Atriði A", "Atriði B", "Atriði C", "Atriði D", "Atriði E", "Atriði F", "Atriði G", "Atriði H"]
+    },
+    it: {
+        select_lang: "Lingua", recommended: "Consigliato", all_languages: "Tutte le lingue",
+        spin: "CLICCA PER FAR GIRARE", shuffle: "Mescola", sort: "Ordina", rename: "Rinomina", delete: "Elimina",
+        placeholder: "Inserisci nuovo nome...", result: "RISULTATO", close: "CHIUDI", cancel: "ANNULLA", confirm: "CONFERMA",
+        confirm_del: "Sei sicuro di voler eliminare questa ruota?", 
+        toast_shuffle: "LISTA MESCOLATA", 
+        toast_sort: "LISTA ORDINATA", 
+        toast_rename: "RINOMINATO IN", 
+        empty: "VUOTO", undo: "Annulla",
+        toast_delete: "RUOTA ELIMINATA", 
+        toast_undo_success: "ANNULLAMENTO RIUSCITO",
+        error_min_wheel: "DEVI MANTENERE ALMENO 1 RUOTA", 
+        add_wheel: "NUOVA RUOTA AGGIUNTA", 
+        default_wheel_name: "RUOTA",
+        default_items: ["Elemento A", "Elemento B", "Elemento C", "Elemento D", "Elemento E", "Elemento F", "Elemento G", "Elemento H"]
+    },
+    lv: {
+        select_lang: "Valoda", recommended: "Ieteicams", all_languages: "Visas valodas",
+        spin: "NOKLIKŠĶINI, LAI GRIEZTU", shuffle: "Sajaukt", sort: "Kārtot", rename: "Pārdēvēt", delete: "Dzēst",
+        placeholder: "Ievadiet jaunu nosaukumu...", result: "REZULTĀTS", close: "AIZVĒRT", cancel: "ATCELT", confirm: "APSTIPRINĀT",
+        confirm_del: "Vai tiešām vēlaties dzēst šo riteni?", 
+        toast_shuffle: "SARAKSTS SAJAUKTS", 
+        toast_sort: "SARAKSTS SAKĀRTOTS", 
+        toast_rename: "PĀRDĒVĒTS PAR", 
+        empty: "TUKŠS", undo: "Atsaukt",
+        toast_delete: "RITENIS DZĒSTS", 
+        toast_undo_success: "ATSAUKŠANA VEIKSMĪGA",
+        error_min_wheel: "JUMS JĀSAGLABĀ VISMĀZ 1 RITENIS", 
+        add_wheel: "PIEVIENOTS JAUNS RITENIS", 
+        default_wheel_name: "RITENIS",
+        default_items: ["Vienums A", "Vienums B", "Vienums C", "Vienums D", "Vienums E", "Vienums F", "Vienums G", "Vienums H"]
+    },
+    lt: {
+        select_lang: "Kalba", recommended: "Rekomenduojama", all_languages: "Visos kalbos",
+        spin: "SPUSTELĖKITE SUKTI", shuffle: "Maišyti", sort: "Rūšiuoti", rename: "Pervadinti", delete: "Ištrinti",
+        placeholder: "Įveskite naują pavadinimą...", result: "REZULTATAS", close: "UŽDARYTI", cancel: "ATŠAUKTI", confirm: "PATVIRTINTI",
+        confirm_del: "Ar tikrai norite ištrinti šį ratą?", 
+        toast_shuffle: "SĄRAŠAS SUMAIŠYTAS", 
+        toast_sort: "SĄRAŠAS SURŪŠIUOTAS", 
+        toast_rename: "PERVADINTA Į", 
+        empty: "TUŠČIA", undo: "Anuliuoti",
+        toast_delete: "RATAS IŠTRINTAS", 
+        toast_undo_success: "ANULIAVIMAS PAVYKO",
+        error_min_wheel: "TURITE IŠSAUGOTI BENT 1 RATĄ", 
+        add_wheel: "PRIDĖTAS NAUJAS RATAS", 
+        default_wheel_name: "RATAS",
+        default_items: ["Elementas A", "Elementas B", "Elementas C", "Elementas D", "Elementas E", "Elementas F", "Elementas G", "Elementas H"]
+    },
+    hu: {
+        select_lang: "Nyelv", recommended: "Ajánlott", all_languages: "Összes nyelv",
+        spin: "KATTINTS A PÖRGÉSHEZ", shuffle: "Keverés", sort: "Rendezés", rename: "Átnevezés", delete: "Törlés",
+        placeholder: "Írja be az új nevet...", result: "EREDMÉNY", close: "BEZÁRÁS", cancel: "MÉGSE", confirm: "MEGERŐSÍTÉS",
+        confirm_del: "Biztosan törölni szeretné ezt a kereket?", 
+        toast_shuffle: "LISTA ÖSSZEKVERVE", 
+        toast_sort: "LISTA RENDEZVE", 
+        toast_rename: "ÁTNEVEZVE:", 
+        empty: "ÜRES", undo: "Visszavonás",
+        toast_delete: "KERÉK TÖRÖLVE", 
+        toast_undo_success: "VISSZAVONÁS SIKERES",
+        error_min_wheel: "MEG KELL TARTANOD LEGALÁBB 1 KEREKET", 
+        add_wheel: "ÚJ KERÉK HOZZÁADVA", 
+        default_wheel_name: "KERÉK",
+        default_items: ["A tétel", "B tétel", "C tétel", "D tétel", "E tétel", "F tétel", "G tétel", "H tétel"]
+    },
+    mk: {
+        select_lang: "Јазик", recommended: "Препорачано", all_languages: "Сите јазици",
+        spin: "КЛИКНИ ЗА ВРТЕЊЕ", shuffle: "Измешај", sort: "Подреди", rename: "Преименувај", delete: "Избриши",
+        placeholder: "Внесете ново име...", result: "РЕЗУЛТАТ", close: "ЗАТВОРИ", cancel: "ОТКАЖИ", confirm: "ПОТВРДИ",
+        confirm_del: "Дали сте сигурни дека сакате да го избришете ова тркало?", 
+        toast_shuffle: "ЛИСТАТА Е ИЗМЕШАНА", 
+        toast_sort: "ЛИСТАТА Е ПОДРЕДЕНА", 
+        toast_rename: "ПРЕИМЕНУВАНО ВО", 
+        empty: "ПРАЗНО", undo: "Врати",
+        toast_delete: "ТРКАЛОТО ИЗБРИШАНО", 
+        toast_undo_success: "ВРАЌАЊЕТО УСПЕШНО",
+        error_min_wheel: "МОРА ДА ЗАДРЖИТЕ БАРЕМ 1 ТРКАЛО", 
+        add_wheel: "ДОДАДЕНО НОВО ТРКАЛО", 
+        default_wheel_name: "ТРКАЛО",
+        default_items: ["Ставка А", "Ставка Б", "Ставка В", "Ставка Г", "Ставка Д", "Ставка Е", "Ставка Ж", "Ставка З"]
+    },
+    mn: {
+        select_lang: "Хэл", recommended: "Зөвлөмж", all_languages: "Бүх хэлүүд",
+        spin: "ЭРГҮҮЛЭХИЙН ДАР", shuffle: "Холих", sort: "Эрэмбэлэх", rename: "Нэр солих", delete: "Устгах",
+        placeholder: "Шинэ нэр оруулах...", result: "ҮР ДҮН", close: "ХААХ", cancel: "ЦУЦЛАХ", confirm: "БАТЛАХ",
+        confirm_del: "Та энэ дугуйг устгахдаа итгэлтэй байна уу?", 
+        toast_shuffle: "ЖАГСААЛТ ХОЛИГДСОН", 
+        toast_sort: "ЖАГСААЛТ ЭРЭМБЭЛЭГДСЭН", 
+        toast_rename: "НЭР СОЛИСОН:", 
+        empty: "ХООСОН", undo: "Буцаах",
+        toast_delete: "ДУГУЙ УСТГАГДСАН", 
+        toast_undo_success: "БУЦААЛТ АМЖИЛТТАЙ",
+        error_min_wheel: "ТА ХАМГИЙН БАГАДАА 1 ДУГУЙ ХАДГАЛСАН БАЙХ ЁСТОЙ", 
+        add_wheel: "ШИНЭ ДУГУЙ НЭМЭГДЛЭЭ", 
+        default_wheel_name: "ДУГУЙ",
+        default_items: ["А нэр", "Б нэр", "С нэр", "Д нэр", "Е нэр", "Ф нэр", "Г нэр", "Х нэр"]
+    },
+    nl: {
+        select_lang: "Taal", recommended: "Aanbevolen", all_languages: "Alle talen",
+        spin: "KLIK OM TE DRAAIEN", shuffle: "Schudden", sort: "Sorteren", rename: "Hernoemen", delete: "Verwijderen",
+        placeholder: "Voer nieuwe naam in...", result: "RESULTAAT", close: "SLUITEN", cancel: "ANNULEREN", confirm: "BEVESTIGEN",
+        confirm_del: "Weet je zeker dat je dit wiel wilt verwijderen?", 
+        toast_shuffle: "LIJST GESCHUDD", 
+        toast_sort: "LIJST GESORTEERD", 
+        toast_rename: "HERNOEMD NAAR", 
+        empty: "LEEG", undo: "Ongedaan maken",
+        toast_delete: "WIEL VERWIJDERD", 
+        toast_undo_success: "ONGEDAAN MAKEN GELUKT",
+        error_min_wheel: "JE MOET MINSTENS 1 WIEL HOUDEN", 
+        add_wheel: "NIEUW WIEL TOEGEVOEGD", 
+        default_wheel_name: "WIEL",
+        default_items: ["Item A", "Item B", "Item C", "Item D", "Item E", "Item F", "Item G", "Item H"]
+    },
+    no: {
+        select_lang: "Språk", recommended: "Anbefalt", all_languages: "Alle språk",
+        spin: "KLIKK FOR Å SNADRE", shuffle: "Stokk", sort: "Sorter", rename: "Gi nytt navn", delete: "Slett",
+        placeholder: "Skriv inn nytt navn...", result: "RESULTAT", close: "LUKK", cancel: "AVBRYT", confirm: "BEKREFT",
+        confirm_del: "Er du sikker på at du vil slette dette hjulet?", 
+        toast_shuffle: "LISTE STOKKET", 
+        toast_sort: "LISTE SORTERT", 
+        toast_rename: "OMDØPT TIL", 
+        empty: "TOM", undo: "Angre",
+        toast_delete: "HJUL SLETTET", 
+        toast_undo_success: "ANGRING LYKKES",
+        error_min_wheel: "DU MÅ BEHOLDE MINST 1 HJUL", 
+        add_wheel: "NYTT HJUL LAGT TIL", 
+        default_wheel_name: "HJUL",
+        default_items: ["Element A", "Element B", "Element C", "Element D", "Element E", "Element F", "Element G", "Element H"]
+    },
+    uz: {
+        select_lang: "Til", recommended: "Tavsiya etiladi", all_languages: "Barcha tillar",
+        spin: "AYLANTIRISH UCHUN BOSING", shuffle: "Aralashtirish", sort: "Saralash", rename: "Nomini o'zgartirish", delete: "O'chirish",
+        placeholder: "Yangi nom kiriting...", result: "NATIJA", close: "YOPISH", cancel: "BEKOR QILISH", confirm: "TASDIQLASH",
+        confirm_del: "Ushbu g'ildirakni o'chirishni xohlaysizmi?", 
+        toast_shuffle: "RO'YXAT ARALASHTIRILDI", 
+        toast_sort: "RO'YXAT SARALANDI", 
+        toast_rename: "NOMI O'ZGARTIRILDI:", 
+        empty: "BO'SH", undo: "Qaytarish",
+        toast_delete: "G'ILDIRAK O'CHIRILDI", 
+        toast_undo_success: "QAYTARISH MUVOFIQIYATLI",
+        error_min_wheel: "KAMIDA 1 G'ILDIRAK SAQLASHINGIZ KERAK", 
+        add_wheel: "YANGI G'ILDIRAK QO'SHILDI", 
+        default_wheel_name: "G'ILDIRAK",
+        default_items: ["A Nomi", "B Nomi", "C Nomi", "D Nomi", "E Nomi", "F Nomi", "G Nomi", "H Nomi"]
+    },
+    pl: {
+        select_lang: "Język", recommended: "Polecany", all_languages: "Wszystkie języki",
+        spin: "KLIKNIJ, ABY ZAKRĘCIĆ", shuffle: "Potasuj", sort: "Sortuj", rename: "Zmień nazwę", delete: "Usuń",
+        placeholder: "Wprowadź nową nazwę...", result: "WYNIK", close: "ZAMKNIJ", cancel: "ANULUJ", confirm: "POTWIERDŹ",
+        confirm_del: "Czy na pewno chcesz usunąć to koło?", 
+        toast_shuffle: "LISTA POTASOWANA", 
+        toast_sort: "LISTA POSORTOWANA", 
+        toast_rename: "ZMIENIONO NAZWĘ NA", 
+        empty: "PUSTE", undo: "Cofnij",
+        toast_delete: "KOŁO USUNIĘTE", 
+        toast_undo_success: "COFNIĘCIE UDANE",
+        error_min_wheel: "MUSISZ ZACHOWAĆ CO NAJMNIEJ 1 KOŁO", 
+        add_wheel: "DODANO NOWE KOŁO", 
+        default_wheel_name: "KOŁO",
+        default_items: ["Element A", "Element B", "Element C", "Element D", "Element E", "Element F", "Element G", "Element H"]
+    },
+    pt: {
+        select_lang: "Idioma", recommended: "Recomendado", all_languages: "Todos os idiomas",
+        spin: "CLIQUE PARA GIRAR", shuffle: "Embaralhar", sort: "Ordenar", rename: "Renomear", delete: "Excluir",
+        placeholder: "Digite novo nome...", result: "RESULTADO", close: "FECHAR", cancel: "CANCELAR", confirm: "CONFIRMAR",
+        confirm_del: "Tem certeza que deseja excluir esta roleta?", 
+        toast_shuffle: "LISTA EMBARALHADA", 
+        toast_sort: "LISTA ORDENADA", 
+        toast_rename: "RENOMEADO PARA", 
+        empty: "VAZIO", undo: "Desfazer",
+        toast_delete: "ROLETA EXCLUÍDA", 
+        toast_undo_success: "DESFAZER BEM-SUCEDIDO",
+        error_min_wheel: "VOCÊ DEVE MANTER PELO MENOS 1 ROLETA", 
+        add_wheel: "NOVA ROLETA ADICIONADA", 
+        default_wheel_name: "ROLETA",
+        default_items: ["Item A", "Item B", "Item C", "Item D", "Item E", "Item F", "Item G", "Item H"]
+    },
+    ru: {
+        select_lang: "Язык", recommended: "Рекомендуемые", all_languages: "Все языки",
+        spin: "НАЖМИТЕ, ЧТОБЫ КРУТИТЬ", shuffle: "Перемешать", sort: "Сортировать", rename: "Переименовать", delete: "Удалить",
+        placeholder: "Введите новое имя...", result: "РЕЗУЛЬТАТ", close: "ЗАКРЫТЬ", cancel: "ОТМЕНА", confirm: "ПОДТВЕРДИТЬ",
+        confirm_del: "Вы уверены, что хотите удалить это колесо?", 
+        toast_shuffle: "СПИСОК ПЕРЕМЕШАН", 
+        toast_sort: "СПИСОК ОТСОРТИРОВАН", 
+        toast_rename: "ПЕРЕИМЕНОВАН В", 
+        empty: "ПУСТО", undo: "Отменить",
+        toast_delete: "КОЛЕСО УДАЛЕНО", 
+        toast_undo_success: "ОТМЕНА УСПЕШНА",
+        error_min_wheel: "ВЫ ДОЛЖНЫ ОСТАВИТЬ ХОТЯ БЫ 1 КОЛЕСО", 
+        add_wheel: "ДОБАВЛЕНО НОВОЕ КОЛЕСО", 
+        default_wheel_name: "КОЛЕСО",
+        default_items: ["Элемент А", "Элемент Б", "Элемент В", "Элемент Г", "Элемент Д", "Элемент Е", "Элемент Ж", "Элемент З"]
+    },
+    ro: {
+        select_lang: "Limba", recommended: "Recomandat", all_languages: "Toate limbile",
+        spin: "CLICK PENTRU A ROTI", shuffle: "Amestecă", sort: "Sortează", rename: "Redenumește", delete: "Șterge",
+        placeholder: "Introduceți numele nou...", result: "REZULTAT", close: "ÎNCHIDE", cancel: "ANULEAZĂ", confirm: "CONFIRMĂ",
+        confirm_del: "Sigur doriți să ștergeți această roată?", 
+        toast_shuffle: "LISTA AMESTECATĂ", 
+        toast_sort: "LISTA SORTATĂ", 
+        toast_rename: "REDENUMIT ÎN", 
+        empty: "GOL", undo: "Anulează",
+        toast_delete: "ROATĂ ȘTERSĂ", 
+        toast_undo_success: "ANULARE REUȘITĂ",
+        error_min_wheel: "TREBUIE SĂ PĂSTREZI CEL PUȚIN O ROATĂ", 
+        add_wheel: "ROATĂ NOUĂ ADĂUGATĂ", 
+        default_wheel_name: "ROATĂ",
+        default_items: ["Element A", "Element B", "Element C", "Element D", "Element E", "Element F", "Element G", "Element H"]
+    },
+    sq: {
+        select_lang: "Gjuha", recommended: "Rekomandohet", all_languages: "Të gjitha gjuhët",
+        spin: "KLIKO PËR TË Rrotulluar", shuffle: "Përziej", sort: "Rendit", rename: "Riemërto", delete: "Fshi",
+        placeholder: "Shkruani emrin e ri...", result: "REZULTATI", close: "MBYLL", cancel: "ANULO", confirm: "KONFIRMO",
+        confirm_del: "Jeni i sigurt që doni të fshini këtë rrotë?", 
+        toast_shuffle: "LISTA U PËRZIE", 
+        toast_sort: "LISTA U RENDIT", 
+        toast_rename: "RIEMËRTUAR NË", 
+        empty: "BOSH", undo: "Zhbëj",
+        toast_delete: "ROTA U FSHI", 
+        toast_undo_success: "ZHBËJA E SUKSESSHME",
+        error_min_wheel: "DUHET TË MBANI TË PAKTËN 1 ROTË", 
+        add_wheel: "ROTË E RE E SHTOUAR", 
+        default_wheel_name: "ROTA",
+        default_items: ["Pika A", "Pika B", "Pika C", "Pika D", "Pika E", "Pika F", "Pika G", "Pika H"]
+    },
+    sl: {
+        select_lang: "Jezik", recommended: "Priporočeno", all_languages: "Vsi jeziki",
+        spin: "KLIKNITE ZA VRTEČO", shuffle: "Premešaj", sort: "Razvrsti", rename: "Preimenuj", delete: "Izbriši",
+        placeholder: "Vnesite novo ime...", result: "REZULTAT", close: "ZAPRI", cancel: "PREKLIČI", confirm: "POTRDI",
+        confirm_del: "Ali ste prepričani, da želite izbrisati to kolo?", 
+        toast_shuffle: "SEZNAM PREMEŠAN", 
+        toast_sort: "SEZNAM RAZVRŠČEN", 
+        toast_rename: "PREIMENOVANO V", 
+        empty: "PRAZNO", undo: "Razveljavi",
+        toast_delete: "KOLO IZBRISANO", 
+        toast_undo_success: "RAZVELJAVITEV USPEŠNA",
+        error_min_wheel: "OBDRŽATI MORATE VSAJ 1 KOLO", 
+        add_wheel: "DODANO NOVO KOLO", 
+        default_wheel_name: "KOLO",
+        default_items: ["Element A", "Element B", "Element C", "Element D", "Element E", "Element F", "Element G", "Element H"]
+    },
+    so: {
+        select_lang: "Luqad", recommended: "Lagula taliyay", all_languages: "Dhammaan luqadaha",
+        spin: "GUJI SI AAD U WAREERISO", shuffle: "Isku qas", sort: "Kala sooc", rename: "Magaca beddel", delete: "Tirtir",
+        placeholder: "Gali magaca cusub...", result: "NATIIJO", close: "XIDH", cancel: "BAATIL", confirm: "XAASII",
+        confirm_del: "Ma hubtaa inaad rabto inaad tirtirto giraantan?", 
+        toast_shuffle: "LIISKA WAA LA ISKU QASHAY", 
+        toast_sort: "LIISKA WAA LA KALA SOOCAY", 
+        toast_rename: "LAGU BEDDELAY MAGACA", 
+        empty: "MADHAN", undo: "Noqo",
+        toast_delete: "GIRAANTA WAA LA TIRTIRAY", 
+        toast_undo_success: "NOQOSHADU WAA GUUL",
+        error_min_wheel: "WAA IN AAD HAYSATAAN UGU YARAN 1 GIRAAN", 
+        add_wheel: "GIRAAN CUSUB AYAAD KUDARTAY", 
+        default_wheel_name: "GIRAAN",
+        default_items: ["Qayb A", "Qayb B", "Qayb C", "Qayb D", "Qayb E", "Qayb F", "Qayb G", "Qayb H"]
+    },
+    sr: {
+        select_lang: "Jezik", recommended: "Preporučeno", all_languages: "Svi jezici",
+        spin: "KLIKNITE ZA OKRETANjE", shuffle: "Izmešaj", sort: "Sortiraj", rename: "Preimenuj", delete: "Obriši",
+        placeholder: "Unesite novo ime...", result: "REZULTAT", close: "ZATVORI", cancel: "OTKAŽI", confirm: "POTVRDI",
+        confirm_del: "Da li ste sigurni da želite da obrišete ovaj točak?", 
+        toast_shuffle: "LISTA IZMEŠANA", 
+        toast_sort: "LISTA SORTIRANA", 
+        toast_rename: "PREIMENOVANO U", 
+        empty: "PRAZNO", undo: "Poništi",
+        toast_delete: "TOČAK OBRISAN", 
+        toast_undo_success: "PONIŠTAVANJE USPEŠNO",
+        error_min_wheel: "MORATE ZADRŽATI NAJMANJE 1 TOČAK", 
+        add_wheel: "DODAT NOVI TOČAK", 
+        default_wheel_name: "TOČAK",
+        default_items: ["Stavka A", "Stavka B", "Stavka C", "Stavka D", "Stavka E", "Stavka F", "Stavka G", "Stavka H"]
+    },
+    fi: {
+        select_lang: "Kieli", recommended: "Suositeltu", all_languages: "Kaikki kielet",
+        spin: "KLIKKAA PYÖRITTÄÄKSEEN", shuffle: "Sekoita", sort: "Järjestä", rename: "Nimeä uudelleen", delete: "Poista",
+        placeholder: "Syötä uusi nimi...", result: "TULOS", close: "SULJE", cancel: "PERUUTA", confirm: "VAHVISTA",
+        confirm_del: "Oletko varma, että haluat poistaa tämän pyörän?", 
+        toast_shuffle: "LISTA SEGOITETTU", 
+        toast_sort: "LISTA JÄRJESTETTY", 
+        toast_rename: "NIMETTY UUDELLEEN:", 
+        empty: "TYHJÄ", undo: "Kumoa",
+        toast_delete: "PYÖRÄ POISTETTU", 
+        toast_undo_success: "KUMOAMINEN ONNISTUI",
+        error_min_wheel: "SINUN ON PIDETTÄVÄ AINAKIN 1 PYÖRÄ", 
+        add_wheel: "UUSI PYÖRÄ LISÄTTY", 
+        default_wheel_name: "PYÖRÄ",
+        default_items: ["Kohde A", "Kohde B", "Kohde C", "Kohde D", "Kohde E", "Kohde F", "Kohde G", "Kohde H"]
+    },
+    sv: {
+        select_lang: "Språk", recommended: "Rekommenderas", all_languages: "Alla språk",
+        spin: "KLICKA FÖR ATT SNAURRA", shuffle: "Blanda", sort: "Sortera", rename: "Byt namn", delete: "Radera",
+        placeholder: "Ange nytt namn...", result: "RESULTAT", close: "STÄNG", cancel: "AVBRYT", confirm: "BEKRÄFTA",
+        confirm_del: "Är du säker på att du vill radera detta hjul?", 
+        toast_shuffle: "LISTAN BLANDAD", 
+        toast_sort: "LISTAN SORTERAD", 
+        toast_rename: "NAMNBYTT TILL", 
+        empty: "TOMT", undo: "Ångra",
+        toast_delete: "HJUL RADERAT", 
+        toast_undo_success: "ÅNGRING LYCKADES",
+        error_min_wheel: "DU MÅSTE BEHÅLLA MINST 1 HJUL", 
+        add_wheel: "NYTT HJUL LADES TILL", 
+        default_wheel_name: "HJUL",
+        default_items: ["Objekt A", "Objekt B", "Objekt C", "Objekt D", "Objekt E", "Objekt F", "Objekt G", "Objekt H"]
+    },
+    tr: {
+        select_lang: "Dil", recommended: "Önerilen", all_languages: "Tüm diller",
+        spin: "DÖNDÜRMEK İÇİN TIKLA", shuffle: "Karıştır", sort: "Sırala", rename: "Yeniden Adlandır", delete: "Sil",
+        placeholder: "Yeni ad girin...", result: "SONUÇ", close: "KAPAT", cancel: "İPTAL", confirm: "ONAYLA",
+        confirm_del: "Bu çarkı silmek istediğinize emin misiniz?", 
+        toast_shuffle: "LİSTE KARIŞTIRILDI", 
+        toast_sort: "LİSTE SIRALANDI", 
+        toast_rename: "YENİ ADI:", 
+        empty: "BOŞ", undo: "Geri Al",
+        toast_delete: "ÇARK SİLİNDİ", 
+        toast_undo_success: "GERİ ALMA BAŞARILI",
+        error_min_wheel: "EN AZ 1 ÇARK BIRAKMALISINIZ", 
+        add_wheel: "YENİ ÇARK EKLENDİ", 
+        default_wheel_name: "ÇARK",
+        default_items: ["A Öğesi", "B Öğesi", "C Öğesi", "D Öğesi", "E Öğesi", "F Öğesi", "G Öğesi", "H Öğesi"]
+    },
+    be: {
+        select_lang: "Мова", recommended: "Рэкамендавана", all_languages: "Усе мовы",
+        spin: "НАЦІСНІЦЕ, КАБ КРУЦІЦЬ", shuffle: "Перамяшаць", sort: "Сартаваць", rename: "Перайменаваць", delete: "Выдаліць",
+        placeholder: "Увядзіце новае імя...", result: "ВЫНІК", close: "ЗАКРЫЦЬ", cancel: "АДМЯНІЦЬ", confirm: "ПАЦВЕРДЗІЦЬ",
+        confirm_del: "Вы ўпэўнены, што хочаце выдаліць гэтае кола?", 
+        toast_shuffle: "СПІС ПЕРАМЕШАНЫ", 
+        toast_sort: "СПІС АДСАРТАВАНЫ", 
+        toast_rename: "ПЕРАЙМЕНАВАНА Ў", 
+        empty: "ПУСТА", undo: "Адмяніць",
+        toast_delete: "КОЛА ВЫДАЛЕНА", 
+        toast_undo_success: "АДМЕНА ПРАЙШЛА ЎСПЕШНА",
+        error_min_wheel: "ВЫ ПАВІННЫ ПАКІНУЦЬ ПРИНАЙМСІ 1 КОЛА", 
+        add_wheel: "ДАДАДЗЕНА НОВАЕ КОЛА", 
+        default_wheel_name: "КОЛА",
+        default_items: ["Элемент А", "Элемент Б", "Элемент В", "Элемент Г", "Элемент Д", "Элемент Е", "Элемент Ж", "Элемент З"]
+    },
+    bg: {
+        select_lang: "Език", recommended: "Препоръчано", all_languages: "Всички езици",
+        spin: "КЛИКНЕТЕ, ЗА ДА ЗАВЪРТИТЕ", shuffle: "Разбъркай", sort: "Сортирай", rename: "Преименувай", delete: "Изтрий",
+        placeholder: "Въведете ново име...", result: "РЕЗУЛТАТ", close: "ЗАТВОРИ", cancel: "ОТКАЖИ", confirm: "ПОТВЪРДИ",
+        confirm_del: "Сигурни ли сте, че искате да изтриете това колело?", 
+        toast_shuffle: "СПИСЪКЪТ Е РАЗБЪРКАН", 
+        toast_sort: "СПИСЪКЪТ Е СОРТИРАН", 
+        toast_rename: "ПРЕИМЕНУВАН НА", 
+        empty: "ПРАЗЕН", undo: "Отмени",
+        toast_delete: "КОЛЕЛОТО Е ИЗТРИТО", 
+        toast_undo_success: "ОТМЯНАТА Е УСПЕШНА",
+        error_min_wheel: "ТРЯБВА ДА ЗАПАЗИТЕ ПОНЕ 1 КОЛЕЛО", 
+        add_wheel: "ДОБАВЕНО Е НОВО КОЛЕЛО", 
+        default_wheel_name: "КОЛЕЛО",
+        default_items: ["Елемент А", "Елемент Б", "Елемент В", "Елемент Г", "Елемент Д", "Елемент Е", "Елемент Ж", "Елемент З"]
+    },
+    kk: {
+        select_lang: "Тіл", recommended: "Ұсынылады", all_languages: "Барлық тілдер",
+        spin: "АЙНАЛДЫРУ ҮШІН БАСЫҢЫЗ", shuffle: "Араластыру", sort: "Сұрыптау", rename: "Атын өзгерту", delete: "Жою",
+        placeholder: "Жаңа атын енгізіңіз...", result: "НӘТИЖЕ", close: "ЖАБУ", cancel: "БОЛДЫРМАУ", confirm: "РАСТАУ",
+        confirm_del: "Бұл дөңгелекті жойғыңыз келетініне сенімдісіз бе?", 
+        toast_shuffle: "ТІЗІМ АРАЛАСТЫРЫЛДЫ", 
+        toast_sort: "ТІЗІМ СҰРЫПТАЛДЫ", 
+        toast_rename: "АТЫ ӨЗГЕРТІЛДІ:", 
+        empty: "БОС", undo: "Болдырмау",
+        toast_delete: "ДӘҢГЕЛЕК ЖОЙЫЛДЫ", 
+        toast_undo_success: "БОЛДЫРМАУ СӘТТІ",
+        error_min_wheel: "КЕМІНДЕ 1 ДӘҢГЕЛЕКТІ ҚАЛДЫРУЫҢЫЗ КЕРЕК", 
+        add_wheel: "ЖАҢА ДӘҢГЕЛЕК ҚОСЫЛДЫ", 
+        default_wheel_name: "ДӘҢГЕЛЕК",
+        default_items: ["А элементі", "Б элементі", "В элементі", "Г элементі", "Д элементі", "Е элементі", "Ж элементі", "З элементі"]
+    },
+    uk: {
+        select_lang: "Мова", recommended: "Рекомендовано", all_languages: "Всі мови",
+        spin: "НАЦІСНІТЬ, ЩОБ КРУТИТИ", shuffle: "Перемішати", sort: "Сортувати", rename: "Перейменувати", delete: "Видалити",
+        placeholder: "Введіть нове ім'я...", result: "РЕЗУЛЬТАТ", close: "ЗАКРИТИ", cancel: "СКАСУВАТИ", confirm: "ПІДТВЕРДИТИ",
+        confirm_del: "Ви впевнені, що хочете видалити це колесо?", 
+        toast_shuffle: "СПИСОК ПЕРЕМІШАНО", 
+        toast_sort: "СПИСОК ВІДСОРТОВАНО", 
+        toast_rename: "ПЕРЕЙМЕНОВАНО НА", 
+        empty: "ПУСТО", undo: "Скасувати",
+        toast_delete: "КОЛЕСО ВИДАЛЕНО", 
+        toast_undo_success: "СКАСУВАННЯ УСПІШНЕ",
+        error_min_wheel: "ВИ ПОВИННІ ЗАЛИШИТИ ПРИНАЙМНІ 1 КОЛЕСО", 
+        add_wheel: "ДОДАНО НОВЕ КОЛЕСО", 
+        default_wheel_name: "КОЛЕСО",
+        default_items: ["Елемент А", "Елемент Б", "Елемент В", "Елемент Г", "Елемент Д", "Елемент Е", "Елемент Ж", "Елемент З"]
+    },
+    ka: {
+        select_lang: "ენა", recommended: "რეკომენდირებული", all_languages: "ყველა ენა",
+        spin: "დააკლიკეთ დასატრიალებლად", shuffle: "არევა", sort: "დალაგება", rename: "გადარქმევა", delete: "წაშლა",
+        placeholder: "შეიყვანეთ ახალი სახელი...", result: "შედეგი", close: "დახურვა", cancel: "გაუქმება", confirm: "დადასტურება",
+        confirm_del: "დარწმუნებული ხართ, რომ გსურთ ამ ბორბლის წაშლა?", 
+        toast_shuffle: "სია არეულია", 
+        toast_sort: "სია დალაგებულია", 
+        toast_rename: "ეწოდა:", 
+        empty: "ცარიელი", undo: "უკან დაბრუნება",
+        toast_delete: "ბორბალი წაიშალა", 
+        toast_undo_success: "უკან დაბრუნება წარმატებული",
+        error_min_wheel: "უნდა შეინახოთ მინიმუმ 1 ბორბალი", 
+        add_wheel: "ახალი ბორბალი დაემატა", 
+        default_wheel_name: "ბორბალი",
+        default_items: ["ელემენტი ა", "ელემენტი ბ", "ელემენტი გ", "ელემენტი დ", "ელემენტი ე", "ელემენტი ვ", "ელემენტი ზ", "ელემენტი თ"]
+    },
+    hy: {
+        select_lang: "Լեզու", recommended: "Առաջարկվող", all_languages: "Բոլոր լեզուները",
+        spin: "ՍԵՂՄԵ՛Ք ՊՏՏԵԼՈՒ ՀԱՄԱՐ", shuffle: "Խառնել", sort: "Դասավորել", rename: "Վերանվանել", delete: "Ջնջել",
+        placeholder: "Մուտքագրեք նոր անուն...", result: "ԱՐԴՅՈՒՆՔ", close: "ՓԱԿԵԼ", cancel: "ՉԵՂԱՐԿԵԼ", confirm: "ՀԱՍՏԱՏԵԼ",
+        confirm_del: "Համոզվա՞ծ եք, որ ցանկանում եք ջնջել այս անիվը:", 
+        toast_shuffle: "ՑՈՒՑԱԿԸ ԽԱՌՆՎԵԼ Է", 
+        toast_sort: "ՑՈՒՑԱԿԸ ԴԱՍԱՎՈՐՎԵԼ Է", 
+        toast_rename: "ՎԵՐԱՆՎԱՆԵԼ Է", 
+        empty: "ԴԱՏԱՐԿ", undo: "Հետարկել",
+        toast_delete: "ԱՆԻՎԸ ՋՆՋՎԵԼ Է", 
+        toast_undo_success: "ՀԵՏԱՐԿՈՒՄԸ ՀԱՋՈՂԵՑ",
+        error_min_wheel: "ԴՈՒՔ ՊԵՏՔ Է ՊԱՀԵՔ ԱՌՆՎԱԶԴ 1 ԱՆԻՎ", 
+        add_wheel: "ԱՎԵԼԱՑՎԵԼ Է ՆՈՐ ԱՆԻՎ", 
+        default_wheel_name: "ԱՆԻՎ",
+        default_items: ["Տարր Ա", "Տարր Բ", "Տարր Գ", "Տարր Դ", "Տարր Ե", "Տարր Զ", "Տարր Է", "Տարր Ը"]
+    },
+    he: {
+        select_lang: "שפה", recommended: "מומלץ", all_languages: "כל השפות",
+        spin: "לחץ כדי לסובב", shuffle: "ערבוב", sort: "מיון", rename: "שינוי שם", delete: "מחיקה",
+        placeholder: "הכנס שם חדש...", result: "תוצאה", close: "סגור", cancel: "ביטול", confirm: "אישור",
+        confirm_del: "האם אתה בטוח שברצונך למחוק גלגל זה?", 
+        toast_shuffle: "הרשימה עורבבה", 
+        toast_sort: "הרשימה מונייה", 
+        toast_rename: "השם שונה ל", 
+        empty: "ריק", undo: "בטל",
+        toast_delete: "הגלגל נמחק", 
+        toast_undo_success: "הביטול הצליח",
+        error_min_wheel: "עליך להשאיר לפחות גלגל 1", 
+        add_wheel: "גלגל חדש נוסף", 
+        default_wheel_name: "גלגל",
+        default_items: ["פריט א", "פריט ב", "פריט ג", "פריט ד", "פריט ה", "פריט ו", "פריט ז", "פריט ח"]
+    },
+    ur: {
+        select_lang: "زبان", recommended: "تجویز کردہ", all_languages: "تمام زبانیں",
+        spin: "گھمانے کے لیے کلک کریں", shuffle: "پھینٹیں", sort: "ترتیب دیں", rename: "نام تبدیل کریں", delete: "حذف کریں",
+        placeholder: "نیا نام درج کریں...", result: "نتیجہ", close: "بند کریں", cancel: "منسوخ کریں", confirm: "تصدیق کریں",
+        confirm_del: "کیا آپ واقعی اس پہیے کو حذف کرنا چاہتے ہیں؟", 
+        toast_shuffle: "فہرست پھینٹ دی گئی", 
+        toast_sort: "فہرست ترتیب دی گئی", 
+        toast_rename: "کا نام تبدیل کر کے رکھ دیا گیا", 
+        empty: "خالی", undo: "واپس کریں",
+        toast_delete: "پہیہ حذف کر دیا گیا", 
+        toast_undo_success: "واپسی کامیاب رہی",
+        error_min_wheel: "آپ کو کم از کم 1 پہیہ رکھنا ہوگا", 
+        add_wheel: "نیا پہیہ شامل کر دیا گیا", 
+        default_wheel_name: "پہیہ",
+        default_items: ["آئٹم A", "آئٹم B", "آئٹم C", "آئٹم D", "آئٹم E", "آئٹم F", "آئٹم G", "آئٹم H"]
+    },
+    ar: {
+        select_lang: "اللغة", recommended: "موصى به", all_languages: "جميع اللغات",
+        spin: "انقر للتدوير", shuffle: "خلط", sort: "ترتيب", rename: "إعادة تسمية", delete: "حذف",
+        placeholder: "أدخل اسمًا جديدًا...", result: "النتيجة", close: "إغلاق", cancel: "إلغاء", confirm: "تأكيد",
+        confirm_del: "هل أنت متأكد من رغبتك في حذف هذه العجلة؟", 
+        toast_shuffle: "تم خلط القائمة", 
+        toast_sort: "تم ترتيب القائمة", 
+        toast_rename: "تمت إعادة التسمية إلى", 
+        empty: "فارغ", undo: "تراجع",
+        toast_delete: "تم حذف العجلة", 
+        toast_undo_success: "تم التراجع بنجاح",
+        error_min_wheel: "يجب عليك الاحتفاظ بعجلة واحدة على الأقل", 
+        add_wheel: "تمت إضافة عجلة جديدة", 
+        default_wheel_name: "عجلة",
+        default_items: ["العنصر أ", "العنصر ب", "العنصر ج", "العنصر د", "العنصر ه", "العنصر و", "العنصر ز", "العنصر ح"]
+    },
+    sd: {
+        select_lang: "ٻولي", recommended: "تجويز ڪيل", all_languages: "سڀ ٻوليون",
+        spin: "ڦيرائڻ لاءِ ڪلڪ ڪريو", shuffle: "ملايو", sort: "ترتيب ڏيو", rename: "نالو تبديل ڪريو", delete: "ختم ڪريو",
+        placeholder: "نئون نالو داخل ڪريو...", result: "نتيجو", close: "بند ڪريو", cancel: "منسوخ", confirm: "تصديق",
+        confirm_del: "ڇا توهان کي پڪ آهي ته توهان هي چڪر ختم ڪرڻ چاهيو ٿا؟", 
+        toast_shuffle: "فهرست ملاي وئي", 
+        toast_sort: "فهرست ترتيب ڏني وئي", 
+        toast_rename: "نالو تبديل ڪيو ويو", 
+        empty: "خالي", undo: "واپس",
+        toast_delete: "چڪر ختم ڪيو ويو", 
+        toast_undo_success: "واپسي ڪامياب",
+        error_min_wheel: "توهان کي گهٽ ۾ گهٽ 1 چڪر رکڻ گهرجي", 
+        add_wheel: "نئون چڪر شامل ڪيو ويو", 
+        default_wheel_name: "چڪر",
+        default_items: ["آئٽم A", "آئٽم B", "آئٽم C", "آئٽم D", "آئٽم E", "آئٽم F", "آئٽم G", "آئٽم H"]
+    },
+    fa: {
+        select_lang: "زبان", recommended: "پیشنهادی", all_languages: "همه زبان‌ها",
+        spin: "برای چرخاندن کلیک کنید", shuffle: "بر هم زدن", sort: "مرتب‌سازی", rename: "تغییر نام", delete: "حذف",
+        placeholder: "نام جدید را وارد کنید...", result: "نتیجه", close: "بستن", cancel: "لغو", confirm: "تأیید",
+        confirm_del: "آیا مطمئن هستید که می‌خواهید این چرخ را حذف کنید؟", 
+        toast_shuffle: "لیست بر هم زده شد", 
+        toast_sort: "لیست مرتب شد", 
+        toast_rename: "تغییر نام یافت به", 
+        empty: "خالی", undo: "بازگردانی",
+        toast_delete: "چرخ حذف شد", 
+        toast_undo_success: "بازگردانی با موفقیت انجام شد",
+        error_min_wheel: "شما باید حداقل 1 چرخ را نگه دارید", 
+        add_wheel: "چرخ جدید اضافه شد", 
+        default_wheel_name: "چرخ",
+        default_items: ["آیتم A", "آیتم B", "آیتم C", "آیتم D", "آیتم E", "آیتم F", "آیتم G", "آیتم H"]
+    },
+    am: {
+        select_lang: "ቋንቋ", recommended: "የሚመከር", all_languages: "ሁሉም ቋንቋዎች",
+        spin: "ለማዞር ጠቅ አድርግ", shuffle: "ቀላቅል", sort: "ደርድር", rename: "ስም ለውጥ", delete: "አጥፋ",
+        placeholder: "አዲስ ስም አስገባ...", result: "ውጤት", close: "ዝጋ", cancel: "ሰርዝ", confirm: "አረጋግጥ",
+        confirm_del: "ይህን ጎማ መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?", 
+        toast_shuffle: "ዝርዝሩ ቀላቅሏል", 
+        toast_sort: "ዝርዝሩ ተደርድሯል", 
+        toast_rename: "ስም ተቀይሮ ሆነ", 
+        empty: "ባዶ", undo: "ቀለበስ",
+        toast_delete: "ጎማው ተሰርዟል", 
+        toast_undo_success: "መቀለበስ ተሳክቷል",
+        error_min_wheel: "ቢያንስ 1 ጎማ ማቆየት አለብዎት", 
+        add_wheel: "አዲስ ጎማ ተጨምሯል", 
+        default_wheel_name: "ጎማ",
+        default_items: ["ንጥል ሀ", "ንጥል ለ", "ንጥል ሐ", "ንጥል መ", "ንጥል ሠ", "ንጥል ረ", "ንጥል ሰ", "ንጥል ሸ"]
+    },
+    hi: {
+        select_lang: "भाषा", recommended: "अनुशंसित", all_languages: "सभी भाषाएँ",
+        spin: "घुमाने के लिए क्लिक करें", shuffle: "फेंटें", sort: "क्रमबद्ध करें", rename: "नाम बदलें", delete: "हटाएँ",
+        placeholder: "नया नाम दर्ज करें...", result: "परिणाम", close: "बंद करें", cancel: "रद्द करें", confirm: "पुष्टि करें",
+        confirm_del: "क्या आप वाकई इस पहिये को हटाना चाहते हैं?", 
+        toast_shuffle: "सूची फेंट दी गई", 
+        toast_sort: "सूची क्रमबद्ध कर दी गई", 
+        toast_rename: "नाम बदलकर कर दिया गया", 
+        empty: "खाली", undo: "पूर्ववत करें",
+        toast_delete: "पहिया हटा दिया गया", 
+        toast_undo_success: "पूर्ववत सफल रहा",
+        error_min_wheel: "आपको कम से कम 1 पहिया रखना होगा", 
+        add_wheel: "नया पहिया जोड़ दिया गया", 
+        default_wheel_name: "पहिया",
+        default_items: ["आइटम A", "आइटम B", "आइटम C", "आइटम D", "आइटम E", "आइटम F", "आइटम G", "आइटम H"]
+    },
+    bn: {
+        select_lang: "ভাষা", recommended: "প্রস্তাবিত", all_languages: "সব ভাষা",
+        spin: "ঘোরানোর জন্য ক্লিক করুন", shuffle: "এলোমেলো করুন", sort: "সাজান", rename: "নাম পরিবর্তন", delete: "মুছুন",
+        placeholder: "নতুন নাম লিখুন...", result: "ফলাফল", close: "বন্ধ করুন", cancel: "বাতিল", confirm: "নিশ্চিত করুন",
+        confirm_del: "আপনি কি নিশ্চিত যে আপনি এই চাকাটি মুছতে চান?", 
+        toast_shuffle: "তালিকা এলোমেলো করা হয়েছে", 
+        toast_sort: "তালিকা সাজানো হয়েছে", 
+        toast_rename: "নাম পরিবর্তন করে রাখা হয়েছে", 
+        empty: "খালি", undo: "পূর্বাবস্থায় ফেরান",
+        toast_delete: "চাকাটি মুছে ফেলা হয়েছে", 
+        toast_undo_success: "পূর্বাবস্থায় ফেরানো সফল হয়েছে",
+        error_min_wheel: "আপনাকে কমপক্ষে 1 চাকা রাখতে হবে", 
+        add_wheel: "নতুন চাকা যোগ করা হয়েছে", 
+        default_wheel_name: "চাকা",
+        default_items: ["আইটেম A", "আইটেম B", "আইটেম C", "আইটেম D", "আইটেম E", "আইটেম F", "আইটেম G", "আইটেম H"]
+    },
+    pa: {
+        select_lang: "ਭਾਸ਼ਾ", recommended: "ਸਿਫ਼ਾਰਸ਼ੀ", all_languages: "ਸਾਰੀਆਂ ਭਾਸ਼ਾਵਾਂ",
+        spin: "ਘੁਮਾਉਣ ਲਈ ਕਲਿੱਕ ਕਰੋ", shuffle: "ਫੇਟੋ", sort: "ਕ੍ਰਮਬੱਧ ਕਰੋ", rename: "ਨਾਂ ਬਦਲੋ", delete: "ਮਿਟਾਓ",
+        placeholder: "ਨਵਾਂ ਨਾਂ ਦਰਜ ਕਰੋ...", result: "ਨਤੀਜਾ", close: "ਬੰਦ ਕਰੋ", cancel: "ਰੱਦ ਕਰੋ", confirm: "ਪੁਸ਼ਟੀ ਕਰੋ",
+        confirm_del: "ਕੀ ਤੁਸੀਂ ਪੱਕਾ ਇਸ ਚੱਕਰ ਨੂੰ ਮਿਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ?", 
+        toast_shuffle: "ਸੂਚੀ ਫੇਟ ਦਿੱਤੀ ਗਈ", 
+        toast_sort: "ਸੂਚੀ ਕ੍ਰਮਬੱਧ ਕਰ ਦਿੱਤੀ ਗਈ", 
+        toast_rename: "ਨਾਂ ਬਦਲ ਕੇ ਰੱਖ ਦਿੱਤਾ ਗਿਆ", 
+        empty: "ਖਾਲੀ", undo: "ਵਾਪਸ ਕਰੋ",
+        toast_delete: "ਚੱਕਰ ਮਿਟਾ ਦਿੱਤਾ ਗਿਆ", 
+        toast_undo_success: "ਵਾਪਸੀ ਸਫਲ ਰਹੀ",
+        error_min_wheel: "ਤੁਹਾਨੂੰ ਘੱਟੋ-ਘੱਟ 1 ਚੱਕਰ ਰੱਖਣਾ ਚਾਹੀਦਾ ਹੈ", 
+        add_wheel: "ਨਵਾਂ ਚੱਕਰ ਜੋੜ ਦਿੱਤਾ ਗਿਆ", 
+        default_wheel_name: "ਚੱਕਰ",
+        default_items: ["ਆਈਟਮ A", "ਆਈਟਮ B", "ਆਈਟਮ C", "ਆਈਟਮ D", "ਆਈਟਮ E", "ਆਈਟਮ F", "ਆਈਟਮ G", "ਆਈਟਮ H"]
+    },
+    gu: {
+        select_lang: "ભાષા", recommended: "ભલામણ", all_languages: "બધી ભાષાઓ",
+        spin: "ફેરવવા માટે ક્લિક કરો", shuffle: "ચીતરો", sort: "ક્રમમાં ગોઠવો", rename: "નામ બદલો", delete: "કાઢી નાખો",
+        placeholder: "નવું નામ દાખલ કરો...", result: "પરિણામ", close: "બંધ કરો", cancel: "રદ કરો", confirm: "પુષ્ટિ કરો",
+        confirm_del: "શું તમે ખરેખર આ ચક્ર કાઢી નાખવા માંગો છો?", 
+        toast_shuffle: "યાદી ચીતરી દેવામાં આવી", 
+        toast_sort: "યાદી ક્રમમાં ગોઠવાઈ ગઈ", 
+        toast_rename: "નામ બદલીને કરવામાં આવ્યું", 
+        empty: "ખાલી", undo: "રદ કરો",
+        toast_delete: "ચક્ર કાઢી નાખવામાં આવ્યું", 
+        toast_undo_success: "રદ કરવું સફળ",
+        error_min_wheel: "તમારે ઓછામાં ઓછું 1 ચક્ર રાખવું જોઈએ", 
+        add_wheel: "નવું ચક્ર ઉમેરવામાં આવ્યું", 
+        default_wheel_name: "ચક્ર",
+        default_items: ["આઇટમ A", "આઇટમ B", "આઇટમ C", "આઇટમ D", "આઇટમ E", "આઇટમ F", "આઇટમ G", "આઇટમ H"]
+    },
+    ta: {
+        select_lang: "மொழி", recommended: "பரிந்துரைக்கப்பட்டது", all_languages: "அனைத்து மொழிகளும்",
+        spin: "சுழற்ற கிளிக் செய்யவும்", shuffle: "கலக்கு", sort: "வரிசையாக்கு", rename: "மறுபெயரிடு", delete: "நீக்கு",
+        placeholder: "புதிய பெயரை உள்ளிடுக...", result: "முடிவு", close: "மூடு", cancel: "ரத்து", confirm: "உறுதி",
+        confirm_del: "இந்த சக்கரத்தை நீக்க விரும்புகிறீர்களா?", 
+        toast_shuffle: "பட்டியல் கலக்கப்பட்டது", 
+        toast_sort: "பட்டியல் வரிசையாக்கப்பட்டது", 
+        toast_rename: "மறுபெயரிடப்பட்டது", 
+        empty: "காலி", undo: "முன்னுக்குத் திருப்பு",
+        toast_delete: "சக்கரம் நீக்கப்பட்டது", 
+        toast_undo_success: "முன்னுக்குத் திருப்பல் வெற்றிகரமானது",
+        error_min_wheel: "நீங்கள் குறைந்தது 1 சக்கரத்தை வைத்திருக்க வேண்டும்", 
+        add_wheel: "புதிய சக்கரம் சேர்க்கப்பட்டது", 
+        default_wheel_name: "சக்கரம்",
+        default_items: ["உருப்படி A", "உருப்படி B", "உருப்படி C", "உருப்படி D", "உருப்படி E", "உருப்படி F", "உருப்படி G", "உருப்படி H"]
+    },
+    kn: {
+        select_lang: "ಭಾಷೆ", recommended: "ಶಿಫಾರಸು", all_languages: "ಎಲ್ಲಾ ಭಾಷೆಗಳು",
+        spin: "ತಿರುಗಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ", shuffle: "ಶಫಲ್", sort: "ವಿಂಗಡಿಸು", rename: "ಮರುಹೆಸರಿಸು", delete: "ಅಳಿಸು",
+        placeholder: "ಹೊಸ ಹೆಸರನ್ನು ನಮೂದಿಸಿ...", result: "ಫಲಿತಾಂಶ", close: "ಮುಚ್ಚಿ", cancel: "ರದ್ದು", confirm: "ದೃಢೀಕರಿಸಿ",
+        confirm_del: "ಈ ಚಕ್ರವನ್ನು ಅಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿದ್ದೀರಾ?", 
+        toast_shuffle: "ಪಟ್ಟಿಯನ್ನು ಶಫಲ್ ಮಾಡಲಾಗಿದೆ", 
+        toast_sort: "ಪಟ್ಟಿಯನ್ನು ವಿಂಗಡಿಸಲಾಗಿದೆ", 
+        toast_rename: "ಮರುಹೆಸರಿಸಲಾಗಿದೆ", 
+        empty: "ಖಾಲಿ", undo: "ಹಿಂದಿರುಗಿಸು",
+        toast_delete: "ಚಕ್ರವನ್ನು ಅಳಿಸಲಾಗಿದೆ", 
+        toast_undo_success: "ಹಿಂದಿರುಗಿಸುವಿಕೆ ಯಶಸ್ವಿಯಾಗಿದೆ",
+        error_min_wheel: "ನೀವು ಕನಿಷ್ಠ 1 ಚಕ್ರವನ್ನು ಇಟ್ಟುಕೊಳ್ಳಬೇಕು", 
+        add_wheel: "ಹೊಸ ಚಕ್ರವನ್ನು ಸೇರಿಸಲಾಗಿದೆ", 
+        default_wheel_name: "ಚಕ್ರ",
+        default_items: ["ಐಟಂ A", "ಐಟಂ B", "ಐಟಂ C", "ಐಟಂ D", "ಐಟಂ E", "ಐಟಂ F", "ಐಟಂ G", "ಐಟಂ H"]
+    },
+    ml: {
+        select_lang: "ഭാഷ", recommended: "ശുപാർശ ചെയ്തത്", all_languages: "എല്ലാ ഭാഷകളും",
+        spin: "കറങ്ങാൻ ക്ലിക്ക് ചെയ്യുക", shuffle: "ഷഫിൾ", sort: "ക്രമീകരിക്കുക", rename: "പുനർനാമകരണം", delete: "ഇല്ലാതാക്കുക",
+        placeholder: "പുതിയ പേര് നൽകുക...", result: "ഫലം", close: "അടയ്ക്കുക", cancel: "റദ്ദാക്കുക", confirm: "സ്ഥിരീകരിക്കുക",
+        confirm_del: "ഈ ചക്രം ഇല്ലാതാക്കണമെന്ന് താങ്കൾക്ക് ഉറപ്പുണ്ടോ?", 
+        toast_shuffle: "ലിസ്റ്റ് ഷഫിൾ ചെയ്തു", 
+        toast_sort: "ലിസ്റ്റ് ക്രമീകരിച്ചു", 
+        toast_rename: "പുനർനാമകരണം നൽകി", 
+        empty: "ശൂന്യം", undo: "പഴയപടിയാക്കുക",
+        toast_delete: "ചക്രം ഇല്ലാതാക്കി", 
+        toast_undo_success: "പഴയപടിയാക്കൽ വിജയിച്ചു",
+        error_min_wheel: "നിങ്ങൾ കുറഞ്ഞത് 1 ചക്രമെങ്കിലും സൂക്ഷിക്കണം", 
+        add_wheel: "പുതിയ ചക്രം ചേർത്തു", 
+        default_wheel_name: "ചക്രം",
+        default_items: ["ഇനം A", "ഇനം B", "ഇനം C", "ഇനം D", "ഇനം E", "ഇനം F", "ഇനം G", "ഇനം H"]
+    },
+    th: {
+        select_lang: "ภาษา", recommended: "แนะนำ", all_languages: "ทุกภาษา",
+        spin: "คลิกเพื่อหมุน", shuffle: "สับเปลี่ยน", sort: "เรียงลำดับ", rename: "เปลี่ยนชื่อ", delete: "ลบ",
+        placeholder: "ป้อนชื่อใหม่...", result: "ผลลัพธ์", close: "ปิด", cancel: "ยกเลิก", confirm: "ยืนยัน",
+        confirm_del: "คุณแน่ใจหรือไม่ว่าต้องการลวงล้อนี้?", 
+        toast_shuffle: "สับเปลี่ยนรายการเรียบร้อย", 
+        toast_sort: "เรียงลำดับรายการเรียบร้อย", 
+        toast_rename: "เปลี่ยนชื่อเป็น", 
+        empty: "ว่าง", undo: "เลิกทำ",
+        toast_delete: "ลบล้อเรียบร้อย", 
+        toast_undo_success: "เลิกทำสำเร็จ",
+        error_min_wheel: "คุณต้องเก็บล้อไว้อย่างน้อย 1 ล้อ", 
+        add_wheel: "เพิ่มล้อใหม่เรียบร้อย", 
+        default_wheel_name: "ล้อ",
+        default_items: ["รายการ A", "รายการ B", "รายการ C", "รายการ D", "รายการ E", "รายการ F", "รายการ G", "รายการ H"]
+    },
+    lo: {
+        select_lang: "ພາສາ", recommended: "ແນະນຳ", all_languages: "ທຸກພາສາ",
+        spin: "ຄລິກເພື່ອໝຸນ", shuffle: "ສະຫຼັບ", sort: "ຈັດລຽງ", rename: "ປ່ຽນຊື່", delete: "ລຶບ",
+        placeholder: "ປ້ອນຊື່ໃໝ່...", result: "ຜົນໄດ້ຮັບ", close: "ປິດ", cancel: "ຍົກເລີກ", confirm: "ຢືນຢັນ",
+        confirm_del: "ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລຶບວົງລໍ້ນີ້?", 
+        toast_shuffle: "ລາຍການຖືກສະຫຼັບແລ້ວ", 
+        toast_sort: "ລາຍການຖືກຈັດລຽບແລ້ວ", 
+        toast_rename: "ປ່ຽນຊື່ເປັນ", 
+        empty: "ຫວ່າງ", undo: "ກັບຄືນ",
+        toast_delete: "ລຶບວົງລໍ້ແລ້ວ", 
+        toast_undo_success: "ກັບຄືນສຳເລັດ",
+        error_min_wheel: "ທ່ານຕ້ອງເກັບວົງລໍ້ຢ່າງໜ້ອຍ 1 ວົງ", 
+        add_wheel: "ເພີ່ມວົງລໍ້ໃໝ່ແລ້ວ", 
+        default_wheel_name: "ວົງລໍ້",
+        default_items: ["ລາຍການ A", "ລາຍການ B", "ລາຍການ C", "ລາຍການ D", "ລາຍການ E", "ລາຍການ F", "ລາຍການ G", "ລາຍການ H"]
+    },
+    my: {
+        select_lang: "ဘာသာစကား", recommended: "အကြံပြုထားသည်", all_languages: "ဘာသာစကားအားလုံး",
+        spin: "လှည့်ရန် နှိပ်ပါ", shuffle: "ကျပန်းစီရန်", sort: "စီရန်", rename: "အမည်ပြောင်းရန်", delete: "ဖျက်ရန်",
+        placeholder: "အမည်အသစ်ထည့်ပါ...", result: "ရလဒ်", close: "ပိတ်ရန်", cancel: "မလုပ်တော့ပါ", confirm: "အတည်ပြုရန်",
+        confirm_del: "ဤဘီးကို ဖျက်ရန် သေချာပါသလား?", 
+        toast_shuffle: "စာရင်းအား ကျပန်းစီပြီးပြီ", 
+        toast_sort: "စာရင်းအား စီပြီးပြီ", 
+        toast_rename: "အမည်ပြောင်းပြီးပါပြီ", 
+        empty: "ဗလာ", undo: "နောက်ပြန်",
+        toast_delete: "ဘီးအား ဖျက်ပြီးပြီ", 
+        toast_undo_success: "နောက်ပြန်ခြင်း အောင်မြင်သည်",
+        error_min_wheel: "သင်သည် အနည်းဆုံး ဘီး ၁ ခု ထားရှိရမည်", 
+        add_wheel: "ဘီးအသစ် ထည့်သွင်းပြီးပြီ", 
+        default_wheel_name: "ဘီး",
+        default_items: ["အကြောင်းအရာ A", "အကြောင်းအရာ B", "အကြောင်းအရာ C", "အကြောင်းအရာ D", "အကြောင်းအရာ E", "အကြောင်းအရာ F", "အကြောင်းအရာ G", "အကြောင်းအရာ H"]
+    },
+    ko: {
+        select_lang: "언어", recommended: "추천", all_languages: "모든 언어",
+        spin: "클릭하여 돌리기", shuffle: "섞기", sort: "정렬", rename: "이름 변경", delete: "삭제",
+        placeholder: "새 이름 입력...", result: "결과", close: "닫기", cancel: "취소", confirm: "확인",
+        confirm_del: "이 휠을 삭제하시겠습니까?", 
+        toast_shuffle: "목록이 섞였습니다", 
+        toast_sort: "목록이 정렬되었습니다", 
+        toast_rename: "이름이 로 변경되었습니다", 
+        empty: "비어 있음", undo: "실행 취소",
+        toast_delete: "휠이 삭제되었습니다", 
+        toast_undo_success: "실행 취소 성공",
+        error_min_wheel: "최소 1개의 휠을 유지해야 합니다", 
+        add_wheel: "새 휠이 추가되었습니다", 
+        default_wheel_name: "휠",
+        default_items: ["항목 A", "항목 B", "항목 C", "항목 D", "항목 E", "항목 F", "항목 G", "항목 H"]
+    },
+    ja: {
+        select_lang: "言語", recommended: "おすすめ", all_languages: "すべての言語",
+        spin: "クリックして回す", shuffle: "シャッフル", sort: "並べ替え", rename: "名前を変更", delete: "削除",
+        placeholder: "新しい名前を入力...", result: "結果", close: "閉じる", cancel: "キャンセル", confirm: "確認",
+        confirm_del: "このホイールを削除してもよろしいですか？", 
+        toast_shuffle: "リストをシャッフルしました", 
+        toast_sort: "リストを並べ替えました", 
+        toast_rename: "名前を に変更しました", 
+        empty: "空です", undo: "元に戻す",
+        toast_delete: "ホイールを削除しました", 
+        toast_undo_success: "元に戻しました",
+        error_min_wheel: "少なくとも1つのホイールを保持する必要があります", 
+        add_wheel: "新しいホイールを追加しました", 
+        default_wheel_name: "ホイール",
+        default_items: ["アイテムA", "アイテムB", "アイテムC", "アイテムD", "アイテムE", "アイテムF", "アイテムG", "アイテムH"]
+    },
+    zhCN: {
+        select_lang: "语言", recommended: "推荐", all_languages: "所有语言",
+        spin: "点击旋转", shuffle: "随机打乱", sort: "排序", rename: "重命名", delete: "删除",
+        placeholder: "输入新名称...", result: "结果", close: "关闭", cancel: "取消", confirm: "确认",
+        confirm_del: "确定要删除这个转盘吗？", 
+        toast_shuffle: "列表已打乱", 
+        toast_sort: "列表已排序", 
+        toast_rename: "已重命名为", 
+        empty: "空", undo: "撤销",
+        toast_delete: "转盘已删除", 
+        toast_undo_success: "撤销成功",
+        error_min_wheel: "您必须至少保留1个转盘", 
+        add_wheel: "已添加新转盘", 
+        default_wheel_name: "转盘",
+        default_items: ["项目A", "项目B", "项目C", "项目D", "项目E", "项目F", "项目G", "项目H"]
+    },
+    zhTW: {
+        select_lang: "語言", recommended: "推薦", all_languages: "所有語言",
+        spin: "點擊旋轉", shuffle: "隨機打亂", sort: "排序", rename: "重新命名", delete: "刪除",
+        placeholder: "輸入新名稱...", result: "結果", close: "關閉", cancel: "取消", confirm: "確認",
+        confirm_del: "確定要刪除這個轉盤嗎？", 
+        toast_shuffle: "清單已打亂", 
+        toast_sort: "清單已排序", 
+        toast_rename: "已重新命名為", 
+        empty: "空白", undo: "復原",
+        toast_delete: "轉盤已刪除", 
+        toast_undo_success: "復原成功",
+        error_min_wheel: "您必須至少保留1個轉盤", 
+        add_wheel: "已新增轉盤", 
+        default_wheel_name: "轉盤",
+        default_items: ["項目A", "項目B", "項目C", "項目D", "項目E", "項目F", "項目G", "項目H"]
+    }
+};
+
+// Gán mặc định các ngôn ngữ khác theo English
+Object.keys(langNames).forEach(code => { if(!i18n[code]) i18n[code] = i18n.en; });
+
+// Hàm tự động phát hiện ngôn ngữ - ĐÃ CẬP NHẬT ƯU TIÊN LỰA CHỌN THỦ CÔNG
+function detectUserLanguage() {
+    // 1. ƯU TIÊN 1: Kiểm tra xem người dùng đã từng chọn thủ công chưa (đã lưu trong localStorage)
+    const savedLang = localStorage.getItem('s-random-pro-lang');
+    if (savedLang && langNames[savedLang]) {
+        return savedLang;
+    }
+
+    // 2. ƯU TIÊN 2: Nếu chưa chọn thủ công, lấy ngôn ngữ của trình duyệt (ví dụ: 'vi', 'en', 'ja'...)
+    const browserLang = navigator.language.split('-')[0];
+    if (langNames[browserLang]) {
+        return browserLang;
+    }
+
+    // 3. CUỐI CÙNG: Mặc định là 'en' nếu không khớp trường hợp nào
+    return 'en';
+}
+
+// Gán ngôn ngữ ban đầu
+let currentLang = detectUserLanguage();
+
+function setLanguage(lang, isAuto = false) {
+    const oldLang = currentLang;
+    currentLang = lang;
+
+    // 1. Cập nhật tên ngôn ngữ hiển thị trên Navbar
+    // Chúng ta lấy tên từ danh sách langNames (ví dụ: "Tiếng Việt")
+    document.getElementById('current-lang-text').innerText = langNames[lang];
+
+    // Dịch các nhãn giao diện (giữ nguyên code cũ của bạn)
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[lang][key]) el.innerText = i18n[lang][key];
+    });
+
+    // 2. LOGIC QUAN TRỌNG: Dịch nội dung bánh xe nếu là mặc định
+    wheels.forEach(wheel => {
+        // Nếu tên bánh xe trùng với tên mặc định của ngôn ngữ cũ -> Đổi sang tên mặc định mới
+        if (wheel.name === i18n[oldLang].default_wheel_name) {
+            wheel.name = i18n[lang].default_wheel_name;
+        }
+
+        // So sánh danh sách items hiện tại với danh sách mặc định cũ
+        const isDefaultItems = JSON.stringify(wheel.items) === JSON.stringify(i18n[oldLang].default_items);
+        if (isDefaultItems) {
+            wheel.items = [...i18n[lang].default_items];
+        }
+    });
+
+    // 3. Cập nhật giao diện (giữ nguyên code cũ của bạn)
+    document.getElementById('name-input').placeholder = i18n[lang].placeholder;
+    document.querySelector('#guide-overlay span').innerText = i18n[lang].spin;
+    
+    loadActive(); // Tải lại dữ liệu lên Textarea
+    renderTabs(); // Vẽ lại các Tab tên bánh xe
+    draw();       // Vẽ lại vòng quay
+    closeLangModal();
+    if (!isAuto) {
+            showToast(langNames[lang].toUpperCase(), 'success');
+            localStorage.setItem('s-random-pro-lang', lang);
+        }
+}
+
+function renderLangList(filter = "") {
+    const recCodes = ['vi', 'en', 'ja', 'ko', 'zh'];
+    const searchLower = filter.toLowerCase();
+    const renderItem = (code) => `
+        <div class="lang-item ${currentLang === code ? 'active' : ''}" onclick="setLanguage('${code}')">
+            ${langNames[code]}
+        </div>
+    `;
+    const allFiltered = Object.keys(langNames).filter(code => langNames[code].toLowerCase().includes(searchLower));
+    document.getElementById('lang-all').innerHTML = allFiltered.map(renderItem).join('');
+    const recSection = document.getElementById('recommended-section');
+    if (filter === "") {
+        recSection.classList.remove('hidden');
+        document.getElementById('lang-recommended').innerHTML = recCodes.map(renderItem).join('');
+    } else {
+        recSection.classList.add('hidden');
+    }
+}
+
+function openLangModal() {
+    document.getElementById('lang-overlay').classList.replace('hidden', 'flex');
+    document.getElementById('lang-search').value = "";
+    renderLangList();
+}
+
+function filterLanguages() {
+    renderLangList(document.getElementById('lang-search').value);
+}
+
+function closeLangModal() {
+    document.getElementById('lang-overlay').classList.replace('flex', 'hidden');
+}
+
+    let wheels = [
+        { 
+            id: 1, 
+            name: i18n[currentLang].default_wheel_name + " 1", 
+            items: [...i18n[currentLang].default_items] 
+        }
+    ];
+    let activeId = 1;
+    let isSpinning = false;
+    let currentAngle = 0;
+    
+    const canvas = document.getElementById("wheel-canvas");
+    const ctx = canvas.getContext("2d");
+    const pointer = document.getElementById("pointer");
+    const inputArea = document.getElementById('name-input');
+
+    document.addEventListener("DOMContentLoaded", () => {
+        setLanguage(currentLang, true); 
+        renderTabs(); 
+        loadActive(); 
+        draw(); 
+        
+        // Kích hoạt xoay chậm ngay lập tức
+        updateAmbientRotation(); 
+    });
+
+    function renderTabs() {
+        const list = document.getElementById('tabs-list');
+        list.innerHTML = wheels.map(w => `
+            <button onclick="switchWheel(${w.id})" class="tab-btn ${w.id === activeId ? 'active' : ''}">${w.name}</button>
+        `).join('');
+    }
+
+    function switchWheel(id) { if(!isSpinning) { activeId = id; renderTabs(); loadActive(); } }
+
+    function loadActive() {
+        const w = wheels.find(x => x.id === activeId);
+        inputArea.value = w.items.join('\n');
+        draw();
+    }
+
+    function handleInput() {
+        const w = wheels.find(x => x.id === activeId);
+        w.items = inputArea.value.split('\n').map(s => s.trim()).filter(s => s);
+        
+        // Thêm hiệu ứng rung/sáng cho vòng quay khi đang nhập
+        const container = document.getElementById('wheel-container');
+        container.classList.remove('wheel-syncing');
+        void container.offsetWidth; // Force reflow
+        container.classList.add('wheel-syncing');
+        
+        draw();
+    }
+
+    function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'elite-toast';
+    
+    let icon = 'fa-check-circle';
+    if(type === 'shuffle') icon = 'fa-shuffle';
+    if(type === 'sort') icon = 'fa-sort-alpha-down';
+    if(type === 'undo') icon = 'fa-trash-can'; // Icon cho thông báo xóa
+    if(type === 'error') { icon = 'fa-triangle-exclamation'; toast.style.borderLeftColor = '#fb7185'; }
+
+    // Phần nội dung thông báo
+    let actionBtnHtml = '';
+    if(type === 'undo') {
+        // Tạo nút Khôi phục nếu loại thông báo là 'undo'
+        actionBtnHtml = `
+            <button onclick="undoDelete(this)" class="ml-auto bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border border-white/10">
+                ${i18n[currentLang].undo}
+            </button>
+        `;
+    }
+
+    toast.innerHTML = `
+        <div class="toast-icon"><i class="fa-solid ${icon}"></i></div>
+        <div class="flex-1">
+            <div class="text-[10px] font-black uppercase tracking-[2px] opacity-50 mb-0.5">S-System</div>
+            <div class="text-sm font-bold tracking-wide">${message}</div>
+        </div>
+        ${actionBtnHtml}
+        <div class="toast-progress"></div>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        if(toast) {
+            toast.classList.add('toast-exit');
+            setTimeout(() => toast.remove(), 500);
+        }
+    }, 4000); // Tăng thời gian lên 4 giây để người dùng kịp bấm
+}
+
+// HÀM XỬ LÝ KHÔI PHỤC
+function undoDelete(btnElement) {
+    if (lastDeletedWheel) {
+        wheels.push(lastDeletedWheel);
+        activeId = lastDeletedWheel.id;
+        lastDeletedWheel = null; // Xóa bộ nhớ đệm
+        
+        renderTabs();
+        loadActive();
+        
+        // Đóng thông báo ngay lập tức
+        const toast = btnElement.closest('.elite-toast');
+        toast.remove();
+        
+        showToast("ĐÃ KHÔI PHỤC THÀNH CÔNG", "success");
+    }
+}
+
+    function draw() {
+    const wheel = wheels.find(x => x.id === activeId);
+    const list = wheel.items.length > 0 ? wheel.items : ["TRỐNG"];
+    const arc = (Math.PI * 2) / list.length;
+    
+    canvas.width = 1200; canvas.height = 1200;
+    ctx.clearRect(0, 0, 1200, 1200);
+
+    // BƯỚC 1: Vẽ các mảnh màu và chữ
+    list.forEach((text, i) => {
+        const angle = currentAngle + i * arc;
+        const hue = (i * (360 / list.length)) % 360;
+        ctx.fillStyle = `hsl(${hue}, 70%, 55%)`;
+        
+        // Vẽ mảnh màu
+        ctx.beginPath();
+        ctx.moveTo(600, 600);
+        ctx.arc(600, 600, 580, angle, angle + arc);
+        ctx.fill();
+
+        // Vẽ chữ
+        ctx.save();
+        ctx.translate(600, 600);
+        ctx.rotate(angle + arc / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "white";
+        ctx.font = "800 42px 'Plus Jakarta Sans'";
+        ctx.fillText(text.toUpperCase().substring(0, 15), 500, 15);
+        ctx.restore();
+    });
+
+    // BƯỚC 2: Vẽ các CHẤM (PINS) - Vẽ sau cùng để luôn ở trên
+    list.forEach((text, i) => {
+        const angle = currentAngle + i * arc; // Đây là vị trí CHÍNH XÁC của cái chấm
+        ctx.save();
+        ctx.translate(600, 600);
+        ctx.rotate(angle); 
+
+        const pinX = 580; 
+        // Tạo hiệu ứng khối cho chấm bạc
+        const grad = ctx.createRadialGradient(pinX-5, -5, 2, pinX, 0, 12);
+        grad.addColorStop(0, "#ffffff");
+        grad.addColorStop(1, "#94a3b8");
+        
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(pinX, 0, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    });
+}
+
+    function spinWheel() {
+    const items = wheels.find(x => x.id === activeId).items;
+    if (isSpinning || items.length < 2) return;
+    isSpinning = true;
+    document.getElementById('guide-overlay').style.opacity = 0;
+    
+    let startTime = null;
+    const duration = 7000 + Math.random() * 2000;
+    const totalRotation = (30 + Math.random() * 20) * Math.PI * 2;
+    const startRotation = currentAngle;
+
+    function animate(time) { // Sử dụng "time" đúng như code của bạn
+        if (!startTime) startTime = time;
+        const progress = Math.min((time - startTime) / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 5); 
+        currentAngle = startRotation + totalRotation * ease;
+        
+        const arc = (Math.PI * 2) / items.length;
+        
+        // --- LOGIC TICK CHUẨN XÁC THEO CÁI CHẤM ---
+        // Thay vì tính currentIdx, ta tính số lượng "vạch" đã đi qua
+        const currentTickIdx = Math.floor(currentAngle / arc);
+        if (window.lastTickIdx !== currentTickIdx) {
+            const pointer = document.getElementById("pointer");
+            pointer.classList.add('pointer-tick');
+            setTimeout(() => pointer.classList.remove('pointer-tick'), 50);
+            window.lastTickIdx = currentTickIdx;
+        }
+        // ------------------------------------------
+
+        draw();
+        if (progress < 1) requestAnimationFrame(animate);
+        else finishSpin();
+    }
+    requestAnimationFrame(animate);
+}
+
+    function finishSpin() {
+        isSpinning = false;
+        document.getElementById('guide-overlay').style.opacity = 1;
+        const items = wheels.find(x => x.id === activeId).items;
+        const arc = (Math.PI * 2) / items.length;
+        const winningAngle = (Math.PI * 2 - (currentAngle % (Math.PI * 2))) % (Math.PI * 2);
+        const index = Math.floor(winningAngle / arc) % items.length;
+        document.getElementById('winner-name').innerText = items[index];
+        document.getElementById('winner-overlay').classList.replace('hidden', 'flex');
+        setTimeout(() => document.getElementById('winner-card').style.transform = 'scale(1)', 50);
+        confetti({ 
+            particleCount: 250, 
+            spread: 100, 
+            origin: { y: 0.6 },
+            zIndex: 10000 // Thêm dòng này để pháo hoa bay đè lên trên Modal
+        });
+    }
+
+    function closeWinner() {
+        document.getElementById('winner-card').style.transform = 'scale(0)';
+        setTimeout(() => document.getElementById('winner-overlay').classList.replace('flex', 'hidden'), 400);
+    }
+
+function addNewWheel() {
+    const id = Date.now();
+    
+    // Lấy tên mặc định từ từ điển (ví dụ: BÁNH XE hoặc WHEEL)
+    const baseName = i18n[currentLang].default_wheel_name;
+    
+    // Tự động cộng thêm số thứ tự (ví dụ: BÁNH XE 2)
+    const newName = `${baseName} ${wheels.length + 1}`;
+    
+    // Lấy danh sách tên mặc định (ví dụ: Tên A, Tên B... hoặc Name A, Name B...)
+    const newItems = [...i18n[currentLang].default_items];
+
+    // Đẩy vào danh sách wheels
+    wheels.push({ 
+        id: id, 
+        name: newName, 
+        items: newItems 
+    });
+
+    // Chuyển sang vòng quay mới tạo
+    activeId = id; 
+    
+    renderTabs(); 
+    loadActive();
+    
+    // Thông báo cho người dùng
+    showToast(i18n[currentLang].add_wheel, 'success');
+}
+function deleteActiveWheel() {
+    if (wheels.length <= 1) {
+        showToast(i18n[currentLang].error_min_wheel, "error");
+        return;
+    }
+
+    openModal({
+        title: i18n[currentLang].delete.toUpperCase(),
+        desc: i18n[currentLang].confirm_del,
+        showInput: false,
+        callback: () => {
+            const index = wheels.findIndex(w => w.id === activeId);
+            
+            // LƯU LẠI VÒNG QUAY VỪA XÓA ĐỂ KHÔI PHỤC
+            lastDeletedWheel = { ...wheels[index] }; 
+            
+            wheels.splice(index, 1);
+            activeId = wheels[0].id;
+            
+            renderTabs();
+            loadActive();
+            
+            // HIỆN THÔNG BÁO CÓ NÚT KHÔI PHỤC
+            showToast(i18n[currentLang].toast_undo_success, "success");
+        }
+    });
+}
+
+// --- LOGIC MODAL TÙY CHỈNH ---
+let modalCallback = null;
+
+function openModal({ title, desc, showInput, defaultValue, callback }) {
+    const overlay = document.getElementById('modal-overlay');
+    const card = document.getElementById('modal-card');
+    const inputWrapper = document.getElementById('modal-input-wrapper');
+    const input = document.getElementById('modal-input');
+    
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-desc').innerText = desc || "";
+    modalCallback = callback;
+
+    // HIỆN hoặc ẨN ô nhập liệu tùy vào mục đích (Đổi tên thì hiện, Xóa thì ẩn)
+    if (showInput) {
+        inputWrapper.classList.remove('hidden');
+        input.value = defaultValue || "";
+        setTimeout(() => input.focus(), 100);
+    } else {
+        inputWrapper.classList.add('hidden');
+    }
+
+    overlay.classList.replace('hidden', 'flex');
+    setTimeout(() => {
+        card.classList.remove('scale-90', 'opacity-0');
+        card.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
+
+document.getElementById('modal-confirm-btn').onclick = () => {
+    const inputValue = document.getElementById('modal-input').value;
+    if (modalCallback) modalCallback(inputValue); 
+    closeModal();
+};
+
+// Thêm tính năng nhấn Enter để xác nhận
+document.getElementById('modal-input').onkeyup = (e) => {
+    if (e.key === 'Enter') document.getElementById('modal-confirm-btn').click();
+};
+
+function closeModal() {
+    const overlay = document.getElementById('modal-overlay');
+    const card = document.getElementById('modal-card');
+    card.classList.replace('scale-100', 'opacity-100', 'scale-90');
+    card.classList.add('opacity-0');
+    setTimeout(() => overlay.classList.replace('flex', 'hidden'), 300);
+}
+
+// --- CẬP NHẬT CÁC HÀM CHỨC NĂNG ---
+
+function renameActiveWheel() {
+    const wheel = wheels.find(x => x.id === activeId);
+    openModal({
+        // Sử dụng từ điển thay vì viết chữ "ĐỔI TÊN"
+        title: i18n[currentLang].rename.toUpperCase(),
+        desc: i18n[currentLang].placeholder,
+        showInput: true,
+        defaultValue: wheel.name,
+        callback: (newName) => {
+            if (newName && newName.trim() !== "") {
+                wheel.name = newName.trim().toUpperCase();
+                renderTabs();
+                // Hiển thị thông báo theo ngôn ngữ hiện tại
+                showToast(`${i18n[currentLang].toast_rename} ${wheel.name}`);
+                confetti({ particleCount: 40, spread: 50, origin: { y: 0.9 } });
+            }
+        }
+    });
+}
+
+function shuffleList() {
+    const w = wheels.find(x => x.id === activeId);
+    w.items.sort(() => Math.random() - 0.5);
+    loadActive();
+    // Gọi Toast hiện đại với icon shuffle
+    showToast(i18n[currentLang].toast_shuffle, 'shuffle');
+}
+
+function sortList() {
+    const w = wheels.find(x => x.id === activeId);
+    w.items.sort();
+    loadActive();
+    // Gọi Toast hiện đại với icon sort
+    showToast(i18n[currentLang].toast_sort, 'sort');
+}
+</script>
+<div id="toast-container" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[2000] flex flex-col gap-2 pointer-events-none"></div>
+</body>
+</html>
