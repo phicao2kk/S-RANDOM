@@ -327,9 +327,21 @@
 <!-- WINNER MODAL -->
 <div id="winner-overlay" class="fixed inset-0 z-[999] hidden items-center justify-center bg-black/95 backdrop-blur-xl">
     <div class="glass p-12 rounded-[50px] border-2 border-indigo-500 text-center max-w-sm w-[90%] scale-0 transition-all duration-500" id="winner-card">
-        <div class="text-indigo-400 text-[10px] font-black tracking-[6px] mb-4 uppercase">KẾT QUẢ</div>
+        <!-- Dùng data-i18n cho tiêu đề -->
+        <div class="text-indigo-400 text-[10px] font-black tracking-[6px] mb-4 uppercase" data-i18n="result_title">KẾT QUẢ</div>
+        
         <h2 id="winner-name" class="text-6xl font-black italic text-white mb-10 break-words uppercase leading-tight">...</h2>
-        <button onclick="closeWinner()" class="w-full py-5 rounded-2xl bg-indigo-600 text-white font-black uppercase tracking-[3px] shadow-lg">ĐÓNG</button>
+        
+        <div class="flex flex-col gap-3">
+            <button onclick="removeWinnerAndClose()" class="w-full py-5 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 font-black uppercase tracking-[2px] hover:bg-red-500 hover:text-white transition-all">
+                <i class="fa-solid fa-trash-can mr-2"></i> 
+                <span data-i18n="remove_this">Xóa mục này</span> <!-- Thêm data-i18n ở đây -->
+            </button>
+            
+            <button onclick="closeWinner()" class="w-full py-5 rounded-2xl bg-indigo-600 text-white font-black uppercase tracking-[3px] shadow-lg">
+                <span data-i18n="close">ĐÓNG</span> <!-- Thêm data-i18n ở đây -->
+            </button>
+        </div>
     </div>
 </div>
 
@@ -508,6 +520,7 @@ devtools.toString = function() {
 // Thỉnh thoảng trình duyệt sẽ gọi toString của hàm khi console được mở
 // console.log('%c', devtools);
 
+let lastWinnerIndex = -1;
 let lastTickAngle = 0; // Theo dõi góc để bắt nhịp tick
 
 function checkTick(items) {
@@ -567,8 +580,8 @@ const i18n = {
         select_lang: "Ngôn ngữ", recommended: "Đề xuất", all_languages: "Tất cả ngôn ngữ",
         spin: "CLICK ĐỂ QUAY", shuffle: "Tráo đổi", sort: "Sắp xếp", rename: "Đổi tên", delete: "Xóa",
         placeholder: "Nhập tên mới...", result: "KẾT QUẢ", close: "ĐÓNG", cancel: "HỦY BỎ", confirm: "XÁC NHẬN",
-        confirm_del: "Bạn có chắc muốn xóa vòng quay này?", 
-        toast_shuffle: "ĐÃ TRÁO ĐỔI DANH SÁCH", 
+        confirm_del: "Bạn có chắc muốn xóa vòng quay này?", remove_this: "Xóa mục này",
+        toast_shuffle: "ĐÃ TRÁO ĐỔI DANH SÁCH", designed_by: "Thiết kế bởi",
         toast_sort: "ĐÃ SẮP XẾP THỨ TỰ", 
         toast_rename: "ĐÃ ĐỔI TÊN THÀNH", 
         empty: "TRỐNG", undo: "Khôi phục",
@@ -583,8 +596,8 @@ const i18n = {
         select_lang: "Language", recommended: "Recommended", all_languages: "All Languages",
         spin: "CLICK TO SPIN", shuffle: "Shuffle", sort: "Sort", rename: "Rename", delete: "Delete",
         placeholder: "Enter new name...", result: "RESULT", close: "CLOSE", cancel: "CANCEL", confirm: "CONFIRM",
-        confirm_del: "Are you sure you want to delete this wheel?", 
-        toast_shuffle: "LIST SHUFFLED", 
+        confirm_del: "Are you sure you want to delete this wheel?", remove_this: "Remove this item",
+        toast_shuffle: "LIST SHUFFLED", designed_by: "Designed by",
         toast_sort: "LIST SORTED", 
         toast_rename: "RENAMED TO", 
         empty: "EMPTY", undo: "Undo",
@@ -599,8 +612,8 @@ const i18n = {
         select_lang: "Dil", recommended: "Tövsiyə olunan", all_languages: "Bütün dillər",
         spin: "Fırlatmaq ÜÇÜN KLİK EDİN", shuffle: "Qarışdır", sort: "Sırala", rename: "Ad dəyiş", delete: "Sil",
         placeholder: "Yeni ad daxil edin...", result: "NƏTİCƏ", close: "BAĞLA", cancel: "LƏĞV ET", confirm: "TƏSDİQ ET",
-        confirm_del: "Bu çarxı silmək istədiyinizə əminsiniz?", 
-        toast_shuffle: "SİYAHI QARIŞDIRILDI", 
+        confirm_del: "Bu çarxı silmək istədiyinizə əminsiniz?", remove_this: "Bu maddəni sil",
+        toast_shuffle: "SİYAHI QARIŞDIRILDI", designed_by: "Dizayn edən",
         toast_sort: "SİYAHI SIRALANDI", 
         toast_rename: "ADI DƏYİŞDİRİLDİ:", 
         empty: "BOŞ", undo: "Geri al",
@@ -615,8 +628,8 @@ const i18n = {
         select_lang: "Bahasa", recommended: "Rekomendasi", all_languages: "Semua Bahasa",
         spin: "KLIK UNTUK MEMUTAR", shuffle: "Acak", sort: "Urutkan", rename: "Ganti Nama", delete: "Hapus",
         placeholder: "Masukkan nama baru...", result: "HASIL", close: "TUTUP", cancel: "BATAL", confirm: "KONFIRMASI",
-        confirm_del: "Apakah Anda yakin ingin menghapus roda ini?", 
-        toast_shuffle: "DAFTAR DIACAK", 
+        confirm_del: "Apakah Anda yakin ingin menghapus roda ini?", remove_this: "Hapus item ini",
+        toast_shuffle: "DAFTAR DIACAK", designed_by: "Dirancang oleh",
         toast_sort: "DAFTAR DIURUTKAN", 
         toast_rename: "DIGANTI MENJADI", 
         empty: "KOSONG", undo: "Urungkan",
@@ -631,8 +644,8 @@ const i18n = {
         select_lang: "Bahasa", recommended: "Disyorkan", all_languages: "Semua Bahasa",
         spin: "KLIK UNTUK MEMUTAR", shuffle: "Kocok", sort: "Susun", rename: "Tukar Nama", delete: "Padam",
         placeholder: "Masukkan nama baharu...", result: "KEPUTUSAN", close: "TUTUP", cancel: "BATAL", confirm: "SAHKAN",
-        confirm_del: "Adakah anda pasti mahu memadamkan roda ini?", 
-        toast_shuffle: "SENARAI DIKOCOK", 
+        confirm_del: "Adakah anda pasti mahu memadamkan roda ini?", remove_this: "Padam item ini",
+        toast_shuffle: "SENARAI DIKOCOK", designed_by: "Direka oleh",
         toast_sort: "SENARAI DISUSUN", 
         toast_rename: "DITUKAR NAMA KEPADA", 
         empty: "KOSONG", undo: "Buat asal",
@@ -647,8 +660,8 @@ const i18n = {
         select_lang: "Jezik", recommended: "Preporučeno", all_languages: "Svi jezici",
         spin: "KLIKNITE ZA OKRETANJE", shuffle: "Izmiješaj", sort: "Sortiraj", rename: "Preimenuj", delete: "Izbriši",
         placeholder: "Unesite novo ime...", result: "REZULTAT", close: "ZATVORI", cancel: "OTKAŽI", confirm: "POTVRDI",
-        confirm_del: "Da li ste sigurni da želite izbrisati ovaj kotač?", 
-        toast_shuffle: "LISTA IZMIJEŠANA", 
+        confirm_del: "Da li ste sigurni da želite izbrisati ovaj kotač?", remove_this: "Izbriši ovu stavku",
+        toast_shuffle: "LISTA IZMIJEŠANA", designed_by: "Dizajnirao",
         toast_sort: "LISTA SORTIRANA", 
         toast_rename: "PREIMENOVANO U", 
         empty: "PRAZNO", undo: "Poništi",
@@ -663,8 +676,8 @@ const i18n = {
         select_lang: "Idioma", recommended: "Recomanat", all_languages: "Tots els idiomes",
         spin: "FEU CLIC PER GIRAR", shuffle: "Barrejar", sort: "Ordenar", rename: "Reanomenar", delete: "Suprimir",
         placeholder: "Introdueix el nou nom...", result: "RESULTAT", close: "TANCAR", cancel: "CANCEL·LAR", confirm: "CONFIRMAR",
-        confirm_del: "Esteu segur que voleu suprimir aquesta ruleta?", 
-        toast_shuffle: "LLISTA BARRETJADA", 
+        confirm_del: "Esteu segur que voleu suprimir aquesta ruleta?", remove_this: "Suprimeix aquest element",
+        toast_shuffle: "LLISTA BARRETJADA", designed_by: "Dissenyat per",
         toast_sort: "LLISTA ORDENADA", 
         toast_rename: "REANOMENAT A", 
         empty: "BUIDA", undo: "Desfer",
@@ -679,8 +692,8 @@ const i18n = {
         select_lang: "Jazyk", recommended: "Doporučeno", all_languages: "Všechny jazyky",
         spin: "KLIKNUTÍM ZATOČÍTE", shuffle: "Zamíchat", sort: "Seřadit", rename: "Přejmenovat", delete: "Smazat",
         placeholder: "Zadejte nový název...", result: "VÝSLEDEK", close: "ZAVŘÍT", cancel: "ZRUŠIT", confirm: "POTVRDIT",
-        confirm_del: "Opravdu chcete smazat toto kolo?", 
-        toast_shuffle: "SEZNAM ZAMÍCHÁN", 
+        confirm_del: "Opravdu chcete smazat toto kolo?", remove_this: "Smazat tuto položku",
+        toast_shuffle: "SEZNAM ZAMÍCHÁN", designed_by: "Navrhl",
         toast_sort: "SEZNAM SEŘAZEN", 
         toast_rename: "PŘEJMENOVÁNO NA", 
         empty: "PRÁZDNÉ", undo: "Zpět",
@@ -695,8 +708,8 @@ const i18n = {
         select_lang: "Iaith", recommended: "Argymhellir", all_languages: "Pob iaith",
         spin: "CLICIWCH I TROI", shuffle: "Sgwyddo", sort: "Trefnu", rename: "Ailenwi", delete: "Dileu",
         placeholder: "Rhowch enw newydd...", result: "CANLYNIAD", close: "CAU", cancel: "CANSLO", confirm: "CADARNHAU",
-        confirm_del: "Ydych chi'n siŵr eich bod am ddileu'r olwyn hon?", 
-        toast_shuffle: "RESTR WEDI'I SGWYDDO", 
+        confirm_del: "Ydych chi'n siŵr eich bod am ddileu'r olwyn hon?", remove_this: "Dileu'r eitem hon",
+        toast_shuffle: "RESTR WEDI'I SGWYDDO", designed_by: "Cynlluniwyd gan",
         toast_sort: "RESTR WEDI'I THREFNU", 
         toast_rename: "WEDI'I AILENWI I", 
         empty: "GWAG", undo: "Dadwneud",
@@ -711,8 +724,8 @@ const i18n = {
         select_lang: "Sprog", recommended: "Anbefalet", all_languages: "Alle sprog",
         spin: "KLIK FOR AT SNADRE", shuffle: "Bland", sort: "Sorter", rename: "Omdøb", delete: "Slet",
         placeholder: "Indtast nyt navn...", result: "RESULTAT", close: "LUK", cancel: "ANNULLER", confirm: "BEKRÆFT",
-        confirm_del: "Er du sikker på, at du vil slette dette hjul?", 
-        toast_shuffle: "LISTE BLANDET", 
+        confirm_del: "Er du sikker på, at du vil slette dette hjul?", remove_this: "Slet dette element",
+        toast_shuffle: "LISTE BLANDET", designed_by: "Designet af",
         toast_sort: "LISTE SORTERET", 
         toast_rename: "OMDØBT TIL", 
         empty: "TOM", undo: "Fortryd",
@@ -727,8 +740,8 @@ const i18n = {
         select_lang: "Sprache", recommended: "Empfohlen", all_languages: "Alle Sprachen",
         spin: "ZUM DREHEN KLICKEN", shuffle: "Mischen", sort: "Sortieren", rename: "Umbenennen", delete: "Löschen",
         placeholder: "Neuen Namen eingeben...", result: "ERGEBNIS", close: "SCHLIESSEN", cancel: "ABBRECHEN", confirm: "BESTÄTIGEN",
-        confirm_del: "Sind Sie sicher, dass Sie dieses Rad löschen möchten?", 
-        toast_shuffle: "LISTE GEMISCHT", 
+        confirm_del: "Sind Sie sicher, dass Sie dieses Rad löschen möchten?", remove_this: "Diesen Artikel entfernen",
+        toast_shuffle: "LISTE GEMISCHT", designed_by: "Entworfen von",
         toast_sort: "LISTE SORTIERT", 
         toast_rename: "UMBENANNT IN", 
         empty: "LEER", undo: "Rückgängig",
@@ -743,8 +756,8 @@ const i18n = {
         select_lang: "Keel", recommended: "Soovitatav", all_languages: "Kõik keeled",
         spin: "PÖÖRAMISEKS KLÕPSA", shuffle: "Segamine", sort: "Sorteerimine", rename: "Ümbernimetamine", delete: "Kustutamine",
         placeholder: "Sisesta uus nimi...", result: "TULEMUS", close: "SULGE", cancel: "TÜHISTA", confirm: "KINNITA",
-        confirm_del: "Kas oled kindel, et soovid selle ratta kustutada?", 
-        toast_shuffle: "NIMEKIRI SEGATI", 
+        confirm_del: "Kas oled kindel, et soovid selle ratta kustutada?", remove_this: "Kustuta see kirje",
+        toast_shuffle: "NIMEKIRI SEGATI", designed_by: "Kujundanud",
         toast_sort: "NIMEKIRI SORTEERITI", 
         toast_rename: "ÜMBER NIMETATUD", 
         empty: "TÜHI", undo: "Võta tagasi",
@@ -759,8 +772,8 @@ const i18n = {
         select_lang: "Tongue", recommended: "Booty", all_languages: "All Scallywag Tongues",
         spin: "CLICK TO SPIN YE SCURVY DOG", shuffle: "Shiver Me Timbers", sort: "Sort the Loot", rename: "Rechristen", delete: "Walk the Plank",
         placeholder: "Scrawl new name...", result: "TREASURE", close: "BATTEN DOWN", cancel: "BELAY THAT", confirm: "ARRR!",
-        confirm_del: "Ye be sure ye want to send this wheel to Davy Jones' Locker?", 
-        toast_shuffle: "LIST BE SHIVERED", 
+        confirm_del: "Ye be sure ye want to send this wheel to Davy Jones' Locker?", remove_this: "Send this loot overboard",
+        toast_shuffle: "LIST BE SHIVERED", designed_by: "Plundered by",
         toast_sort: "LOOT BE SORTED", 
         toast_rename: "RECHRISTENED TO", 
         empty: "EMPTY AS A GHOST SHIP", undo: "Reverse the Plank",
@@ -775,8 +788,8 @@ const i18n = {
         select_lang: "Idioma", recommended: "Recomendado", all_languages: "Todos los idiomas",
         spin: "HAZ CLIC PARA GIRAR", shuffle: "Mezclar", sort: "Ordenar", rename: "Renombrar", delete: "Eliminar",
         placeholder: "Ingrese nuevo nombre...", result: "RESULTADO", close: "CERRAR", cancel: "CANCELAR", confirm: "CONFIRMAR",
-        confirm_del: "¿Estás seguro de que quieres eliminar esta ruleta?", 
-        toast_shuffle: "LISTA MEZCLADA", 
+        confirm_del: "¿Estás seguro de que quieres eliminar esta ruleta?", remove_this: "Eliminar este elemento",
+        toast_shuffle: "LISTA MEZCLADA", designed_by: "Diseñado por",
         toast_sort: "LISTA ORDENADA", 
         toast_rename: "RENOMBRADO A", 
         empty: "VACÍO", undo: "Deshacer",
@@ -791,8 +804,8 @@ const i18n = {
         select_lang: "Γλώσσα", recommended: "Προτεινόμενα", all_languages: "Όλες οι γλώσσες",
         spin: "ΚΛΙΚ ΓΙΑ ΠΕΡΙΣΤΡΟΦΗ", shuffle: "Ανακάτεμα", sort: "Ταξινόμηση", rename: "Μετονομασία", delete: "Διαγραφή",
         placeholder: "Εισάγετε νέο όνομα...", result: "ΑΠΟΤΕΛΕΣΜΑ", close: "ΚΛΕΙΣΙΜΟ", cancel: "ΑΚΥΡΩΣΗ", confirm: "ΕΠΙΒΕΒΑΙΩΣΗ",
-        confirm_del: "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον τροχό;", 
-        toast_shuffle: "Η ΛΙΣΤΑ ΑΝΑΚΑΤΕΥΤΗΚΕ", 
+        confirm_del: "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον τροχό?", remove_this: "Κατάργηση αυτού του στοιχείου",
+        toast_shuffle: "Η ΛΙΣΤΑ ΑΝΑΚΑΤΕΥΤΗΚΕ", designed_by: "Σχεδιάστηκε από",
         toast_sort: "Η ΛΙΣΤΑ ΤΑΞΙΝΟΜΗΘΗΚΕ", 
         toast_rename: "ΜΕΤΟΝΟΜΑΣΤΗΚΕ ΣΕ", 
         empty: "ΑΔΕΙΟ", undo: "Αναίρεση",
@@ -807,8 +820,8 @@ const i18n = {
         select_lang: "Wika", recommended: "Inirerekomenda", all_languages: "Lahat ng Wika",
         spin: "I-CLICK PARA I-SPIN", shuffle: "I-shuffle", sort: "I-sort", rename: "Palitan ang Pangalan", delete: "Burahin",
         placeholder: "Maglagay ng bagong pangalan...", result: "RESULTA", close: "ISARA", cancel: "KANSELAHIN", confirm: "KUMPIRMAHIN",
-        confirm_del: "Sigurado ka bang gusto mong burahin ang gulong na ito?", 
-        toast_shuffle: "NA-SHUFFLE ANG LISTAHAN", 
+        confirm_del: "Sigurado ka bang gusto mong burahin ang gulong na ito?", remove_this: "Alisin ang item na ito",
+        toast_shuffle: "NA-SHUFFLE ANG LISTAHAN", designed_by: "Dinisenyo ni",
         toast_sort: "NA-SORT ANG LISTAHAN", 
         toast_rename: "PINALITAN NG PANGALAN SA", 
         empty: "WALANG LAMAN", undo: "I-undo",
@@ -823,8 +836,8 @@ const i18n = {
         select_lang: "Langue", recommended: "Recommandé", all_languages: "Toutes les langues",
         spin: "CLIQUEZ POUR TOURNER", shuffle: "Mélanger", sort: "Trier", rename: "Renommer", delete: "Supprimer",
         placeholder: "Entrez un nouveau nom...", result: "RÉSULTAT", close: "FERMER", cancel: "ANNULER", confirm: "CONFIRMER",
-        confirm_del: "Voulez-vous vraiment supprimer cette roue ?", 
-        toast_shuffle: "LISTE MÉLANGÉE", 
+        confirm_del: "Voulez-vous vraiment supprimer cette roue ?", remove_this: "Supprimer cet élément",
+        toast_shuffle: "LISTE MÉLANGÉE", designed_by: "Conçu par",
         toast_sort: "LISTE TRIÉE", 
         toast_rename: "RENOMMÉ EN", 
         empty: "VIDE", undo: "Annuler",
@@ -839,8 +852,8 @@ const i18n = {
         select_lang: "Idioma", recommended: "Recomendado", all_languages: "Todos os idiomas",
         spin: "CLIC PARA XIRAR", shuffle: "Barallar", sort: "Ordenar", rename: "Renomear", delete: "Eliminar",
         placeholder: "Insire o novo nome...", result: "RESULTADO", close: "PECHAR", cancel: "CANCELAR", confirm: "CONFIRMAR",
-        confirm_del: "Estás seguro de que queres eliminar esta roda?", 
-        toast_shuffle: "LISTA BARRALLADA", 
+        confirm_del: "Estás seguro de que queres eliminar esta roda?", remove_this: "Eliminar este elemento",
+        toast_shuffle: "LISTA BARRALLADA", designed_by: "Deseñado por",
         toast_sort: "LISTA ORDENADA", 
         toast_rename: "RENOMEADO A", 
         empty: "BALEIRO", undo: "Desfacer",
@@ -855,8 +868,8 @@ const i18n = {
         select_lang: "Jezik", recommended: "Preporučeno", all_languages: "Svi jezici",
         spin: "KLIKNITE ZA OKRETANJE", shuffle: "Izmiješaj", sort: "Sortiraj", rename: "Preimenuj", delete: "Izbriši",
         placeholder: "Unesite novo ime...", result: "REZULTAT", close: "ZATVORI", cancel: "ODUSTANI", confirm: "POTVRDI",
-        confirm_del: "Jeste li sigurni da želite izbrisati ovaj kotač?", 
-        toast_shuffle: "POPIS IZMIJEŠAN", 
+        confirm_del: "Jeste li sigurni da želite izbrisati ovaj kotač?", remove_this: "Izbriši ovu stavku",
+        toast_shuffle: "POPIS IZMIJEŠAN", designed_by: "Dizajnirao",
         toast_sort: "POPIS SORTIRAN", 
         toast_rename: "PREIMENOVANO U", 
         empty: "PRAZNO", undo: "Poništi",
@@ -871,8 +884,8 @@ const i18n = {
         select_lang: "Tungumál", recommended: "Mælt með", all_languages: "Öll tungumál",
         spin: "SMELLA TIL AÐ SNAÚA", shuffle: "Blanda", sort: "Raða", rename: "Endurnefna", delete: "Eyða",
         placeholder: "Sláðu inn nýtt nafn...", result: "NIÐURSTAÐA", close: "LOKA", cancel: "HÆTT VIÐ", confirm: "STAÐFESTA",
-        confirm_del: "Ertu viss um að þú viljir eyða þessum hjóli?", 
-        toast_shuffle: "LISTI BLANDADUR", 
+        confirm_del: "Ertu viss um að þú viljir eyða þessum hjóli?", remove_this: "Fjarlægja þennan hlut",
+        toast_shuffle: "LISTI BLANDADUR", designed_by: "Hannað af",
         toast_sort: "LISTI RAÐADUR", 
         toast_rename: "ENDURNEFNT Í", 
         empty: "TÓMT", undo: "Afturkalla",
@@ -887,8 +900,8 @@ const i18n = {
         select_lang: "Lingua", recommended: "Consigliato", all_languages: "Tutte le lingue",
         spin: "CLICCA PER FAR GIRARE", shuffle: "Mescola", sort: "Ordina", rename: "Rinomina", delete: "Elimina",
         placeholder: "Inserisci nuovo nome...", result: "RISULTATO", close: "CHIUDI", cancel: "ANNULLA", confirm: "CONFERMA",
-        confirm_del: "Sei sicuro di voler eliminare questa ruota?", 
-        toast_shuffle: "LISTA MESCOLATA", 
+        confirm_del: "Sei sicuro di voler eliminare questa ruota?", remove_this: "Rimuovi questo elemento",
+        toast_shuffle: "LISTA MESCOLATA", designed_by: "Progettato da",
         toast_sort: "LISTA ORDINATA", 
         toast_rename: "RINOMINATO IN", 
         empty: "VUOTO", undo: "Annulla",
@@ -903,8 +916,8 @@ const i18n = {
         select_lang: "Valoda", recommended: "Ieteicams", all_languages: "Visas valodas",
         spin: "NOKLIKŠĶINI, LAI GRIEZTU", shuffle: "Sajaukt", sort: "Kārtot", rename: "Pārdēvēt", delete: "Dzēst",
         placeholder: "Ievadiet jaunu nosaukumu...", result: "REZULTĀTS", close: "AIZVĒRT", cancel: "ATCELT", confirm: "APSTIPRINĀT",
-        confirm_del: "Vai tiešām vēlaties dzēst šo riteni?", 
-        toast_shuffle: "SARAKSTS SAJAUKTS", 
+        confirm_del: "Vai tiešām vēlaties dzēst šo riteni?", remove_this: "Noņemt šo vienumu",
+        toast_shuffle: "SARAKSTS SAJAUKTS", designed_by: "Izstrādāja",
         toast_sort: "SARAKSTS SAKĀRTOTS", 
         toast_rename: "PĀRDĒVĒTS PAR", 
         empty: "TUKŠS", undo: "Atsaukt",
@@ -919,8 +932,8 @@ const i18n = {
         select_lang: "Kalba", recommended: "Rekomenduojama", all_languages: "Visos kalbos",
         spin: "SPUSTELĖKITE SUKTI", shuffle: "Maišyti", sort: "Rūšiuoti", rename: "Pervadinti", delete: "Ištrinti",
         placeholder: "Įveskite naują pavadinimą...", result: "REZULTATAS", close: "UŽDARYTI", cancel: "ATŠAUKTI", confirm: "PATVIRTINTI",
-        confirm_del: "Ar tikrai norite ištrinti šį ratą?", 
-        toast_shuffle: "SĄRAŠAS SUMAIŠYTAS", 
+        confirm_del: "Ar tikrai norite ištrinti šį ratą?", remove_this: "Pašalinti šį elementą",
+        toast_shuffle: "SĄRAŠAS SUMAIŠYTAS", designed_by: "Sukūrė",
         toast_sort: "SĄRAŠAS SURŪŠIUOTAS", 
         toast_rename: "PERVADINTA Į", 
         empty: "TUŠČIA", undo: "Anuliuoti",
@@ -935,8 +948,8 @@ const i18n = {
         select_lang: "Nyelv", recommended: "Ajánlott", all_languages: "Összes nyelv",
         spin: "KATTINTS A PÖRGÉSHEZ", shuffle: "Keverés", sort: "Rendezés", rename: "Átnevezés", delete: "Törlés",
         placeholder: "Írja be az új nevet...", result: "EREDMÉNY", close: "BEZÁRÁS", cancel: "MÉGSE", confirm: "MEGERŐSÍTÉS",
-        confirm_del: "Biztosan törölni szeretné ezt a kereket?", 
-        toast_shuffle: "LISTA ÖSSZEKVERVE", 
+        confirm_del: "Biztosan törölni szeretné ezt a kereket?", remove_this: "Ezen tétel eltávolítása",
+        toast_shuffle: "LISTA ÖSSZEKVERVE", designed_by: "Tervezte",
         toast_sort: "LISTA RENDEZVE", 
         toast_rename: "ÁTNEVEZVE:", 
         empty: "ÜRES", undo: "Visszavonás",
@@ -951,8 +964,8 @@ const i18n = {
         select_lang: "Јазик", recommended: "Препорачано", all_languages: "Сите јазици",
         spin: "КЛИКНИ ЗА ВРТЕЊЕ", shuffle: "Измешај", sort: "Подреди", rename: "Преименувај", delete: "Избриши",
         placeholder: "Внесете ново име...", result: "РЕЗУЛТАТ", close: "ЗАТВОРИ", cancel: "ОТКАЖИ", confirm: "ПОТВРДИ",
-        confirm_del: "Дали сте сигурни дека сакате да го избришете ова тркало?", 
-        toast_shuffle: "ЛИСТАТА Е ИЗМЕШАНА", 
+        confirm_del: "Дали сте сигурни дека сакате да го избришете ова тркало?", remove_this: "Избриши ја оваа ставка",
+        toast_shuffle: "ЛИСТАТА Е ИЗМЕШАНА", designed_by: "Дизајниран од",
         toast_sort: "ЛИСТАТА Е ПОДРЕДЕНА", 
         toast_rename: "ПРЕИМЕНУВАНО ВО", 
         empty: "ПРАЗНО", undo: "Врати",
@@ -967,8 +980,8 @@ const i18n = {
         select_lang: "Хэл", recommended: "Зөвлөмж", all_languages: "Бүх хэлүүд",
         spin: "ЭРГҮҮЛЭХИЙН ДАР", shuffle: "Холих", sort: "Эрэмбэлэх", rename: "Нэр солих", delete: "Устгах",
         placeholder: "Шинэ нэр оруулах...", result: "ҮР ДҮН", close: "ХААХ", cancel: "ЦУЦЛАХ", confirm: "БАТЛАХ",
-        confirm_del: "Та энэ дугуйг устгахдаа итгэлтэй байна уу?", 
-        toast_shuffle: "ЖАГСААЛТ ХОЛИГДСОН", 
+        confirm_del: "Та энэ дугуйг устгахдаа итгэлтэй байна уу?", remove_this: "Энэ зүйлийг устгах",
+        toast_shuffle: "ЖАГСААЛТ ХОЛИГДСОН", designed_by: "Зохион бүтээсэн",
         toast_sort: "ЖАГСААЛТ ЭРЭМБЭЛЭГДСЭН", 
         toast_rename: "НЭР СОЛИСОН:", 
         empty: "ХООСОН", undo: "Буцаах",
@@ -983,8 +996,8 @@ const i18n = {
         select_lang: "Taal", recommended: "Aanbevolen", all_languages: "Alle talen",
         spin: "KLIK OM TE DRAAIEN", shuffle: "Schudden", sort: "Sorteren", rename: "Hernoemen", delete: "Verwijderen",
         placeholder: "Voer nieuwe naam in...", result: "RESULTAAT", close: "SLUITEN", cancel: "ANNULEREN", confirm: "BEVESTIGEN",
-        confirm_del: "Weet je zeker dat je dit wiel wilt verwijderen?", 
-        toast_shuffle: "LIJST GESCHUDD", 
+        confirm_del: "Weet je zeker dat je dit wiel wilt verwijderen?", remove_this: "Dit item verwijderen",
+        toast_shuffle: "LIJST GESCHUDD", designed_by: "Ontworpen door",
         toast_sort: "LIJST GESORTEERD", 
         toast_rename: "HERNOEMD NAAR", 
         empty: "LEEG", undo: "Ongedaan maken",
@@ -999,8 +1012,8 @@ const i18n = {
         select_lang: "Språk", recommended: "Anbefalt", all_languages: "Alle språk",
         spin: "KLIKK FOR Å SNADRE", shuffle: "Stokk", sort: "Sorter", rename: "Gi nytt navn", delete: "Slett",
         placeholder: "Skriv inn nytt navn...", result: "RESULTAT", close: "LUKK", cancel: "AVBRYT", confirm: "BEKREFT",
-        confirm_del: "Er du sikker på at du vil slette dette hjulet?", 
-        toast_shuffle: "LISTE STOKKET", 
+        confirm_del: "Er du sikker på at du vil slette dette hjulet?", remove_this: "Fjern dette elementet",
+        toast_shuffle: "LISTE STOKKET", designed_by: "Designet av",
         toast_sort: "LISTE SORTERT", 
         toast_rename: "OMDØPT TIL", 
         empty: "TOM", undo: "Angre",
@@ -1015,8 +1028,8 @@ const i18n = {
         select_lang: "Til", recommended: "Tavsiya etiladi", all_languages: "Barcha tillar",
         spin: "AYLANTIRISH UCHUN BOSING", shuffle: "Aralashtirish", sort: "Saralash", rename: "Nomini o'zgartirish", delete: "O'chirish",
         placeholder: "Yangi nom kiriting...", result: "NATIJA", close: "YOPISH", cancel: "BEKOR QILISH", confirm: "TASDIQLASH",
-        confirm_del: "Ushbu g'ildirakni o'chirishni xohlaysizmi?", 
-        toast_shuffle: "RO'YXAT ARALASHTIRILDI", 
+        confirm_del: "Ushbu g'ildirakni o'chirishni xohlaysizmi?", remove_this: "Ushbu elementni olib tashlash",
+        toast_shuffle: "RO'YXAT ARALASHTIRILDI", designed_by: "Dizayn muallifi",
         toast_sort: "RO'YXAT SARALANDI", 
         toast_rename: "NOMI O'ZGARTIRILDI:", 
         empty: "BO'SH", undo: "Qaytarish",
@@ -1031,8 +1044,8 @@ const i18n = {
         select_lang: "Język", recommended: "Polecany", all_languages: "Wszystkie języki",
         spin: "KLIKNIJ, ABY ZAKRĘCIĆ", shuffle: "Potasuj", sort: "Sortuj", rename: "Zmień nazwę", delete: "Usuń",
         placeholder: "Wprowadź nową nazwę...", result: "WYNIK", close: "ZAMKNIJ", cancel: "ANULUJ", confirm: "POTWIERDŹ",
-        confirm_del: "Czy na pewno chcesz usunąć to koło?", 
-        toast_shuffle: "LISTA POTASOWANA", 
+        confirm_del: "Czy na pewno chcesz usunąć to koło?", remove_this: "Usuń ten element",
+        toast_shuffle: "LISTA POTASOWANA", designed_by: "Zaprojektowane przez",
         toast_sort: "LISTA POSORTOWANA", 
         toast_rename: "ZMIENIONO NAZWĘ NA", 
         empty: "PUSTE", undo: "Cofnij",
@@ -1047,8 +1060,8 @@ const i18n = {
         select_lang: "Idioma", recommended: "Recomendado", all_languages: "Todos os idiomas",
         spin: "CLIQUE PARA GIRAR", shuffle: "Embaralhar", sort: "Ordenar", rename: "Renomear", delete: "Excluir",
         placeholder: "Digite novo nome...", result: "RESULTADO", close: "FECHAR", cancel: "CANCELAR", confirm: "CONFIRMAR",
-        confirm_del: "Tem certeza que deseja excluir esta roleta?", 
-        toast_shuffle: "LISTA EMBARALHADA", 
+        confirm_del: "Tem certeza que deseja excluir esta roleta?", remove_this: "Remover este item",
+        toast_shuffle: "LISTA EMBARALHADA", designed_by: "Desenhado por",
         toast_sort: "LISTA ORDENADA", 
         toast_rename: "RENOMEADO PARA", 
         empty: "VAZIO", undo: "Desfazer",
@@ -1063,8 +1076,8 @@ const i18n = {
         select_lang: "Язык", recommended: "Рекомендуемые", all_languages: "Все языки",
         spin: "НАЖМИТЕ, ЧТОБЫ КРУТИТЬ", shuffle: "Перемешать", sort: "Сортировать", rename: "Переименовать", delete: "Удалить",
         placeholder: "Введите новое имя...", result: "РЕЗУЛЬТАТ", close: "ЗАКРЫТЬ", cancel: "ОТМЕНА", confirm: "ПОДТВЕРДИТЬ",
-        confirm_del: "Вы уверены, что хотите удалить это колесо?", 
-        toast_shuffle: "СПИСОК ПЕРЕМЕШАН", 
+        confirm_del: "Вы уверены, что хотите удалить это колесо?", remove_this: "Удалить этот элемент",
+        toast_shuffle: "СПИСОК ПЕРЕМЕШАН", designed_by: "Дизайн от",
         toast_sort: "СПИСОК ОТСОРТИРОВАН", 
         toast_rename: "ПЕРЕИМЕНОВАН В", 
         empty: "ПУСТО", undo: "Отменить",
@@ -1079,8 +1092,8 @@ const i18n = {
         select_lang: "Limba", recommended: "Recomandat", all_languages: "Toate limbile",
         spin: "CLICK PENTRU A ROTI", shuffle: "Amestecă", sort: "Sortează", rename: "Redenumește", delete: "Șterge",
         placeholder: "Introduceți numele nou...", result: "REZULTAT", close: "ÎNCHIDE", cancel: "ANULEAZĂ", confirm: "CONFIRMĂ",
-        confirm_del: "Sigur doriți să ștergeți această roată?", 
-        toast_shuffle: "LISTA AMESTECATĂ", 
+        confirm_del: "Sigur doriți să ștergeți această roată?", remove_this: "Eliminați acest element",
+        toast_shuffle: "LISTA AMESTECATĂ", designed_by: "Proiectat de",
         toast_sort: "LISTA SORTATĂ", 
         toast_rename: "REDENUMIT ÎN", 
         empty: "GOL", undo: "Anulează",
@@ -1095,8 +1108,8 @@ const i18n = {
         select_lang: "Gjuha", recommended: "Rekomandohet", all_languages: "Të gjitha gjuhët",
         spin: "KLIKO PËR TË Rrotulluar", shuffle: "Përziej", sort: "Rendit", rename: "Riemërto", delete: "Fshi",
         placeholder: "Shkruani emrin e ri...", result: "REZULTATI", close: "MBYLL", cancel: "ANULO", confirm: "KONFIRMO",
-        confirm_del: "Jeni i sigurt që doni të fshini këtë rrotë?", 
-        toast_shuffle: "LISTA U PËRZIE", 
+        confirm_del: "Jeni i sigurt që doni të fshini këtë rrotë?", remove_this: "Hiq këtë artikull",
+        toast_shuffle: "LISTA U PËRZIE", designed_by: "Projektuar nga",
         toast_sort: "LISTA U RENDIT", 
         toast_rename: "RIEMËRTUAR NË", 
         empty: "BOSH", undo: "Zhbëj",
@@ -1111,8 +1124,8 @@ const i18n = {
         select_lang: "Jezik", recommended: "Priporočeno", all_languages: "Vsi jeziki",
         spin: "KLIKNITE ZA VRTEČO", shuffle: "Premešaj", sort: "Razvrsti", rename: "Preimenuj", delete: "Izbriši",
         placeholder: "Vnesite novo ime...", result: "REZULTAT", close: "ZAPRI", cancel: "PREKLIČI", confirm: "POTRDI",
-        confirm_del: "Ali ste prepričani, da želite izbrisati to kolo?", 
-        toast_shuffle: "SEZNAM PREMEŠAN", 
+        confirm_del: "Ali ste prepričani, da želite izbrisati to kolo?", remove_this: "Odstrani ta element",
+        toast_shuffle: "SEZNAM PREMEŠAN", designed_by: "Oblikoval",
         toast_sort: "SEZNAM RAZVRŠČEN", 
         toast_rename: "PREIMENOVANO V", 
         empty: "PRAZNO", undo: "Razveljavi",
@@ -1127,8 +1140,8 @@ const i18n = {
         select_lang: "Luqad", recommended: "Lagula taliyay", all_languages: "Dhammaan luqadaha",
         spin: "GUJI SI AAD U WAREERISO", shuffle: "Isku qas", sort: "Kala sooc", rename: "Magaca beddel", delete: "Tirtir",
         placeholder: "Gali magaca cusub...", result: "NATIIJO", close: "XIDH", cancel: "BAATIL", confirm: "XAASII",
-        confirm_del: "Ma hubtaa inaad rabto inaad tirtirto giraantan?", 
-        toast_shuffle: "LIISKA WAA LA ISKU QASHAY", 
+        confirm_del: "Ma hubtaa inaad rabto inaad tirtirto giraantan?", remove_this: "Ka saar shaygan",
+        toast_shuffle: "LIISKA WAA LA ISKU QASHAY", designed_by: "Naqshadeeyay",
         toast_sort: "LIISKA WAA LA KALA SOOCAY", 
         toast_rename: "LAGU BEDDELAY MAGACA", 
         empty: "MADHAN", undo: "Noqo",
@@ -1143,8 +1156,8 @@ const i18n = {
         select_lang: "Jezik", recommended: "Preporučeno", all_languages: "Svi jezici",
         spin: "KLIKNITE ZA OKRETANjE", shuffle: "Izmešaj", sort: "Sortiraj", rename: "Preimenuj", delete: "Obriši",
         placeholder: "Unesite novo ime...", result: "REZULTAT", close: "ZATVORI", cancel: "OTKAŽI", confirm: "POTVRDI",
-        confirm_del: "Da li ste sigurni da želite da obrišete ovaj točak?", 
-        toast_shuffle: "LISTA IZMEŠANA", 
+        confirm_del: "Da li ste sigurni da želite da obrišete ovaj točak?", remove_this: "Ukloni ovu stavku",
+        toast_shuffle: "LISTA IZMEŠANA", designed_by: "Dizajnirao",
         toast_sort: "LISTA SORTIRANA", 
         toast_rename: "PREIMENOVANO U", 
         empty: "PRAZNO", undo: "Poništi",
@@ -1159,8 +1172,8 @@ const i18n = {
         select_lang: "Kieli", recommended: "Suositeltu", all_languages: "Kaikki kielet",
         spin: "KLIKKAA PYÖRITTÄÄKSEEN", shuffle: "Sekoita", sort: "Järjestä", rename: "Nimeä uudelleen", delete: "Poista",
         placeholder: "Syötä uusi nimi...", result: "TULOS", close: "SULJE", cancel: "PERUUTA", confirm: "VAHVISTA",
-        confirm_del: "Oletko varma, että haluat poistaa tämän pyörän?", 
-        toast_shuffle: "LISTA SEGOITETTU", 
+        confirm_del: "Oletko varma, että haluat poistaa tämän pyörän?", remove_this: "Poista tämä kohde",
+        toast_shuffle: "LISTA SEGOITETTU", designed_by: "Suunnitellut",
         toast_sort: "LISTA JÄRJESTETTY", 
         toast_rename: "NIMETTY UUDELLEEN:", 
         empty: "TYHJÄ", undo: "Kumoa",
@@ -1175,8 +1188,8 @@ const i18n = {
         select_lang: "Språk", recommended: "Rekommenderas", all_languages: "Alla språk",
         spin: "KLICKA FÖR ATT SNAURRA", shuffle: "Blanda", sort: "Sortera", rename: "Byt namn", delete: "Radera",
         placeholder: "Ange nytt namn...", result: "RESULTAT", close: "STÄNG", cancel: "AVBRYT", confirm: "BEKRÄFTA",
-        confirm_del: "Är du säker på att du vill radera detta hjul?", 
-        toast_shuffle: "LISTAN BLANDAD", 
+        confirm_del: "Är du säker på att du vill radera detta hjul?", remove_this: "Ta bort detta objekt",
+        toast_shuffle: "LISTAN BLANDAD", designed_by: "Designad av",
         toast_sort: "LISTAN SORTERAD", 
         toast_rename: "NAMNBYTT TILL", 
         empty: "TOMT", undo: "Ångra",
@@ -1191,8 +1204,8 @@ const i18n = {
         select_lang: "Dil", recommended: "Önerilen", all_languages: "Tüm diller",
         spin: "DÖNDÜRMEK İÇİN TIKLA", shuffle: "Karıştır", sort: "Sırala", rename: "Yeniden Adlandır", delete: "Sil",
         placeholder: "Yeni ad girin...", result: "SONUÇ", close: "KAPAT", cancel: "İPTAL", confirm: "ONAYLA",
-        confirm_del: "Bu çarkı silmek istediğinize emin misiniz?", 
-        toast_shuffle: "LİSTE KARIŞTIRILDI", 
+        confirm_del: "Bu çarkı silmek istediğinize emin misiniz?", remove_this: "Bu öğeyi kaldır",
+        toast_shuffle: "LİSTE KARIŞTIRILDI", designed_by: "Tasarlayan",
         toast_sort: "LİSTE SIRALANDI", 
         toast_rename: "YENİ ADI:", 
         empty: "BOŞ", undo: "Geri Al",
@@ -1207,8 +1220,8 @@ const i18n = {
         select_lang: "Мова", recommended: "Рэкамендавана", all_languages: "Усе мовы",
         spin: "НАЦІСНІЦЕ, КАБ КРУЦІЦЬ", shuffle: "Перамяшаць", sort: "Сартаваць", rename: "Перайменаваць", delete: "Выдаліць",
         placeholder: "Увядзіце новае імя...", result: "ВЫНІК", close: "ЗАКРЫЦЬ", cancel: "АДМЯНІЦЬ", confirm: "ПАЦВЕРДЗІЦЬ",
-        confirm_del: "Вы ўпэўнены, што хочаце выдаліць гэтае кола?", 
-        toast_shuffle: "СПІС ПЕРАМЕШАНЫ", 
+        confirm_del: "Вы ўпэўнены, што хочаце выдаліць гэтае кола?", remove_this: "Выдаліць гэты элемент",
+        toast_shuffle: "СПІС ПЕРАМЕШАНЫ", designed_by: "Дызайн ад",
         toast_sort: "СПІС АДСАРТАВАНЫ", 
         toast_rename: "ПЕРАЙМЕНАВАНА Ў", 
         empty: "ПУСТА", undo: "Адмяніць",
@@ -1223,8 +1236,8 @@ const i18n = {
         select_lang: "Език", recommended: "Препоръчано", all_languages: "Всички езици",
         spin: "КЛИКНЕТЕ, ЗА ДА ЗАВЪРТИТЕ", shuffle: "Разбъркай", sort: "Сортирай", rename: "Преименувай", delete: "Изтрий",
         placeholder: "Въведете ново име...", result: "РЕЗУЛТАТ", close: "ЗАТВОРИ", cancel: "ОТКАЖИ", confirm: "ПОТВЪРДИ",
-        confirm_del: "Сигурни ли сте, че искате да изтриете това колело?", 
-        toast_shuffle: "СПИСЪКЪТ Е РАЗБЪРКАН", 
+        confirm_del: "Сигурни ли сте, че искате да изтриете това колело?", remove_this: "Премахване на този елемент",
+        toast_shuffle: "СПИСЪКЪТ Е РАЗБЪРКАН", designed_by: "Дизайн от",
         toast_sort: "СПИСЪКЪТ Е СОРТИРАН", 
         toast_rename: "ПРЕИМЕНУВАН НА", 
         empty: "ПРАЗЕН", undo: "Отмени",
@@ -1239,8 +1252,8 @@ const i18n = {
         select_lang: "Тіл", recommended: "Ұсынылады", all_languages: "Барлық тілдер",
         spin: "АЙНАЛДЫРУ ҮШІН БАСЫҢЫЗ", shuffle: "Араластыру", sort: "Сұрыптау", rename: "Атын өзгерту", delete: "Жою",
         placeholder: "Жаңа атын енгізіңіз...", result: "НӘТИЖЕ", close: "ЖАБУ", cancel: "БОЛДЫРМАУ", confirm: "РАСТАУ",
-        confirm_del: "Бұл дөңгелекті жойғыңыз келетініне сенімдісіз бе?", 
-        toast_shuffle: "ТІЗІМ АРАЛАСТЫРЫЛДЫ", 
+        confirm_del: "Бұл дөңгелекті жойғыңыз келетініне сенімдісіз бе?", remove_this: "Бұл элементті жою",
+        toast_shuffle: "ТІЗІМ АРАЛАСТЫРЫЛДЫ", designed_by: "Дизайнері",
         toast_sort: "ТІЗІМ СҰРЫПТАЛДЫ", 
         toast_rename: "АТЫ ӨЗГЕРТІЛДІ:", 
         empty: "БОС", undo: "Болдырмау",
@@ -1255,8 +1268,8 @@ const i18n = {
         select_lang: "Мова", recommended: "Рекомендовано", all_languages: "Всі мови",
         spin: "НАЦІСНІТЬ, ЩОБ КРУТИТИ", shuffle: "Перемішати", sort: "Сортувати", rename: "Перейменувати", delete: "Видалити",
         placeholder: "Введіть нове ім'я...", result: "РЕЗУЛЬТАТ", close: "ЗАКРИТИ", cancel: "СКАСУВАТИ", confirm: "ПІДТВЕРДИТИ",
-        confirm_del: "Ви впевнені, що хочете видалити це колесо?", 
-        toast_shuffle: "СПИСОК ПЕРЕМІШАНО", 
+        confirm_del: "Ви впевнені, що хочете видалити це колесо?", remove_this: "Видалити цей елемент",
+        toast_shuffle: "СПИСОК ПЕРЕМІШАНО", designed_by: "Дизайн від",
         toast_sort: "СПИСОК ВІДСОРТОВАНО", 
         toast_rename: "ПЕРЕЙМЕНОВАНО НА", 
         empty: "ПУСТО", undo: "Скасувати",
@@ -1271,8 +1284,8 @@ const i18n = {
         select_lang: "ენა", recommended: "რეკომენდირებული", all_languages: "ყველა ენა",
         spin: "დააკლიკეთ დასატრიალებლად", shuffle: "არევა", sort: "დალაგება", rename: "გადარქმევა", delete: "წაშლა",
         placeholder: "შეიყვანეთ ახალი სახელი...", result: "შედეგი", close: "დახურვა", cancel: "გაუქმება", confirm: "დადასტურება",
-        confirm_del: "დარწმუნებული ხართ, რომ გსურთ ამ ბორბლის წაშლა?", 
-        toast_shuffle: "სია არეულია", 
+        confirm_del: "დარწმუნებული ხართ, რომ გსურთ ამ ბორბლის წაშლა?", remove_this: "ამ ელემენტის წაშლა",
+        toast_shuffle: "სია არეულია", designed_by: "დიზაინერი",
         toast_sort: "სია დალაგებულია", 
         toast_rename: "ეწოდა:", 
         empty: "ცარიელი", undo: "უკან დაბრუნება",
@@ -1287,8 +1300,8 @@ const i18n = {
         select_lang: "Լեզու", recommended: "Առաջարկվող", all_languages: "Բոլոր լեզուները",
         spin: "ՍԵՂՄԵ՛Ք ՊՏՏԵԼՈՒ ՀԱՄԱՐ", shuffle: "Խառնել", sort: "Դասավորել", rename: "Վերանվանել", delete: "Ջնջել",
         placeholder: "Մուտքագրեք նոր անուն...", result: "ԱՐԴՅՈՒՆՔ", close: "ՓԱԿԵԼ", cancel: "ՉԵՂԱՐԿԵԼ", confirm: "ՀԱՍՏԱՏԵԼ",
-        confirm_del: "Համոզվա՞ծ եք, որ ցանկանում եք ջնջել այս անիվը:", 
-        toast_shuffle: "ՑՈՒՑԱԿԸ ԽԱՌՆՎԵԼ Է", 
+        confirm_del: "Համոզվա՞ծ եք, որ ցանկանում եք ջնջել այս անիվը:", remove_this: "Հեռացնել այս տարրը",
+        toast_shuffle: "ՑՈՒՑԱԿԸ ԽԱՌՆՎԵԼ Է", designed_by: "Ձևավորող",
         toast_sort: "ՑՈՒՑԱԿԸ ԴԱՍԱՎՈՐՎԵԼ Է", 
         toast_rename: "ՎԵՐԱՆՎԱՆԵԼ Է", 
         empty: "ԴԱՏԱՐԿ", undo: "Հետարկել",
@@ -1303,8 +1316,8 @@ const i18n = {
         select_lang: "שפה", recommended: "מומלץ", all_languages: "כל השפות",
         spin: "לחץ כדי לסובב", shuffle: "ערבוב", sort: "מיון", rename: "שינוי שם", delete: "מחיקה",
         placeholder: "הכנס שם חדש...", result: "תוצאה", close: "סגור", cancel: "ביטול", confirm: "אישור",
-        confirm_del: "האם אתה בטוח שברצונך למחוק גלגל זה?", 
-        toast_shuffle: "הרשימה עורבבה", 
+        confirm_del: "האם אתה בטוח שברצונך למחוק גלגל זה?", remove_this: "הסר פריט זה",
+        toast_shuffle: "הרשימה עורבבה", designed_by: "עוצב על ידי",
         toast_sort: "הרשימה מונייה", 
         toast_rename: "השם שונה ל", 
         empty: "ריק", undo: "בטל",
@@ -1319,8 +1332,8 @@ const i18n = {
         select_lang: "زبان", recommended: "تجویز کردہ", all_languages: "تمام زبانیں",
         spin: "گھمانے کے لیے کلک کریں", shuffle: "پھینٹیں", sort: "ترتیب دیں", rename: "نام تبدیل کریں", delete: "حذف کریں",
         placeholder: "نیا نام درج کریں...", result: "نتیجہ", close: "بند کریں", cancel: "منسوخ کریں", confirm: "تصدیق کریں",
-        confirm_del: "کیا آپ واقعی اس پہیے کو حذف کرنا چاہتے ہیں؟", 
-        toast_shuffle: "فہرست پھینٹ دی گئی", 
+        confirm_del: "کیا آپ واقعی اس پہیے کو حذف کرنا چاہتے ہیں؟", remove_this: "اس آئٹم کو ہٹائیں",
+        toast_shuffle: "فہرست پھینٹ دی گئی", designed_by: "ڈیزائن کردہ",
         toast_sort: "فہرست ترتیب دی گئی", 
         toast_rename: "کا نام تبدیل کر کے رکھ دیا گیا", 
         empty: "خالی", undo: "واپس کریں",
@@ -1335,8 +1348,8 @@ const i18n = {
         select_lang: "اللغة", recommended: "موصى به", all_languages: "جميع اللغات",
         spin: "انقر للتدوير", shuffle: "خلط", sort: "ترتيب", rename: "إعادة تسمية", delete: "حذف",
         placeholder: "أدخل اسمًا جديدًا...", result: "النتيجة", close: "إغلاق", cancel: "إلغاء", confirm: "تأكيد",
-        confirm_del: "هل أنت متأكد من رغبتك في حذف هذه العجلة؟", 
-        toast_shuffle: "تم خلط القائمة", 
+        confirm_del: "هل أنت متأكد من رغبتك في حذف هذه العجلة؟", remove_this: "إزالة هذا العنصر",
+        toast_shuffle: "تم خلط القائمة", designed_by: "صمم بواسطة",
         toast_sort: "تم ترتيب القائمة", 
         toast_rename: "تمت إعادة التسمية إلى", 
         empty: "فارغ", undo: "تراجع",
@@ -1351,8 +1364,8 @@ const i18n = {
         select_lang: "ٻولي", recommended: "تجويز ڪيل", all_languages: "سڀ ٻوليون",
         spin: "ڦيرائڻ لاءِ ڪلڪ ڪريو", shuffle: "ملايو", sort: "ترتيب ڏيو", rename: "نالو تبديل ڪريو", delete: "ختم ڪريو",
         placeholder: "نئون نالو داخل ڪريو...", result: "نتيجو", close: "بند ڪريو", cancel: "منسوخ", confirm: "تصديق",
-        confirm_del: "ڇا توهان کي پڪ آهي ته توهان هي چڪر ختم ڪرڻ چاهيو ٿا؟", 
-        toast_shuffle: "فهرست ملاي وئي", 
+        confirm_del: "ڇا توهان کي پڪ آهي ته توهان هي چڪر ختم ڪرڻ چاهيو ٿا؟", remove_this: "ھي آئٽم ھٽايو",
+        toast_shuffle: "فهرست ملاي وئي", designed_by: "ڊزائن ڪندڙ",
         toast_sort: "فهرست ترتيب ڏني وئي", 
         toast_rename: "نالو تبديل ڪيو ويو", 
         empty: "خالي", undo: "واپس",
@@ -1367,8 +1380,8 @@ const i18n = {
         select_lang: "زبان", recommended: "پیشنهادی", all_languages: "همه زبان‌ها",
         spin: "برای چرخاندن کلیک کنید", shuffle: "بر هم زدن", sort: "مرتب‌سازی", rename: "تغییر نام", delete: "حذف",
         placeholder: "نام جدید را وارد کنید...", result: "نتیجه", close: "بستن", cancel: "لغو", confirm: "تأیید",
-        confirm_del: "آیا مطمئن هستید که می‌خواهید این چرخ را حذف کنید؟", 
-        toast_shuffle: "لیست بر هم زده شد", 
+        confirm_del: "آیا مطمئن هستید که می‌خواهید این چرخ را حذف کنید؟", remove_this: "حذف این مورد",
+        toast_shuffle: "لیست بر هم زده شد", designed_by: "طراحی شده توسط",
         toast_sort: "لیست مرتب شد", 
         toast_rename: "تغییر نام یافت به", 
         empty: "خالی", undo: "بازگردانی",
@@ -1383,8 +1396,8 @@ const i18n = {
         select_lang: "ቋንቋ", recommended: "የሚመከር", all_languages: "ሁሉም ቋንቋዎች",
         spin: "ለማዞር ጠቅ አድርግ", shuffle: "ቀላቅል", sort: "ደርድር", rename: "ስም ለውጥ", delete: "አጥፋ",
         placeholder: "አዲስ ስም አስገባ...", result: "ውጤት", close: "ዝጋ", cancel: "ሰርዝ", confirm: "አረጋግጥ",
-        confirm_del: "ይህን ጎማ መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?", 
-        toast_shuffle: "ዝርዝሩ ቀላቅሏል", 
+        confirm_del: "ይህን ጎማ መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?", remove_this: "ይህን ንጥል አስወግድ",
+        toast_shuffle: "ዝርዝሩ ቀላቅሏል", designed_by: "ዲዛይን የተደረገው በ",
         toast_sort: "ዝርዝሩ ተደርድሯል", 
         toast_rename: "ስም ተቀይሮ ሆነ", 
         empty: "ባዶ", undo: "ቀለበስ",
@@ -1399,8 +1412,8 @@ const i18n = {
         select_lang: "भाषा", recommended: "अनुशंसित", all_languages: "सभी भाषाएँ",
         spin: "घुमाने के लिए क्लिक करें", shuffle: "फेंटें", sort: "क्रमबद्ध करें", rename: "नाम बदलें", delete: "हटाएँ",
         placeholder: "नया नाम दर्ज करें...", result: "परिणाम", close: "बंद करें", cancel: "रद्द करें", confirm: "पुष्टि करें",
-        confirm_del: "क्या आप वाकई इस पहिये को हटाना चाहते हैं?", 
-        toast_shuffle: "सूची फेंट दी गई", 
+        confirm_del: "क्या आप वाकई इस पहिये को हटाना चाहते हैं?", remove_this: "इस आइटम को हटाएं",
+        toast_shuffle: "सूची फेंट दी गई", designed_by: "द्वारा डिज़ाइन किया गया",
         toast_sort: "सूची क्रमबद्ध कर दी गई", 
         toast_rename: "नाम बदलकर कर दिया गया", 
         empty: "खाली", undo: "पूर्ववत करें",
@@ -1415,8 +1428,8 @@ const i18n = {
         select_lang: "ভাষা", recommended: "প্রস্তাবিত", all_languages: "সব ভাষা",
         spin: "ঘোরানোর জন্য ক্লিক করুন", shuffle: "এলোমেলো করুন", sort: "সাজান", rename: "নাম পরিবর্তন", delete: "মুছুন",
         placeholder: "নতুন নাম লিখুন...", result: "ফলাফল", close: "বন্ধ করুন", cancel: "বাতিল", confirm: "নিশ্চিত করুন",
-        confirm_del: "আপনি কি নিশ্চিত যে আপনি এই চাকাটি মুছতে চান?", 
-        toast_shuffle: "তালিকা এলোমেলো করা হয়েছে", 
+        confirm_del: "আপনি কি নিশ্চিত যে আপনি এই চাকাটি মুছতে চান?", remove_this: "এই আইটেমটি সরান",
+        toast_shuffle: "তালিকা এলোমেলো করা হয়েছে", designed_by: "ডিজাইন করেছেন",
         toast_sort: "তালিকা সাজানো হয়েছে", 
         toast_rename: "নাম পরিবর্তন করে রাখা হয়েছে", 
         empty: "খালি", undo: "পূর্বাবস্থায় ফেরান",
@@ -1431,8 +1444,8 @@ const i18n = {
         select_lang: "ਭਾਸ਼ਾ", recommended: "ਸਿਫ਼ਾਰਸ਼ੀ", all_languages: "ਸਾਰੀਆਂ ਭਾਸ਼ਾਵਾਂ",
         spin: "ਘੁਮਾਉਣ ਲਈ ਕਲਿੱਕ ਕਰੋ", shuffle: "ਫੇਟੋ", sort: "ਕ੍ਰਮਬੱਧ ਕਰੋ", rename: "ਨਾਂ ਬਦਲੋ", delete: "ਮਿਟਾਓ",
         placeholder: "ਨਵਾਂ ਨਾਂ ਦਰਜ ਕਰੋ...", result: "ਨਤੀਜਾ", close: "ਬੰਦ ਕਰੋ", cancel: "ਰੱਦ ਕਰੋ", confirm: "ਪੁਸ਼ਟੀ ਕਰੋ",
-        confirm_del: "ਕੀ ਤੁਸੀਂ ਪੱਕਾ ਇਸ ਚੱਕਰ ਨੂੰ ਮਿਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ?", 
-        toast_shuffle: "ਸੂਚੀ ਫੇਟ ਦਿੱਤੀ ਗਈ", 
+        confirm_del: "ਕੀ ਤੁਸੀਂ ਪੱਕਾ ਇਸ ਚੱਕਰ ਨੂੰ ਮਿਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ?", remove_this: "ਇਸ ਆਈਟਮ ਨੂੰ ਹਟਾਓ",
+        toast_shuffle: "ਸੂਚੀ ਫੇਟ ਦਿੱਤੀ ਗਈ", designed_by: "ਡਿਜ਼ਾਈਨ ਕੀਤਾ",
         toast_sort: "ਸੂਚੀ ਕ੍ਰਮਬੱਧ ਕਰ ਦਿੱਤੀ ਗਈ", 
         toast_rename: "ਨਾਂ ਬਦਲ ਕੇ ਰੱਖ ਦਿੱਤਾ ਗਿਆ", 
         empty: "ਖਾਲੀ", undo: "ਵਾਪਸ ਕਰੋ",
@@ -1447,8 +1460,8 @@ const i18n = {
         select_lang: "ભાષા", recommended: "ભલામણ", all_languages: "બધી ભાષાઓ",
         spin: "ફેરવવા માટે ક્લિક કરો", shuffle: "ચીતરો", sort: "ક્રમમાં ગોઠવો", rename: "નામ બદલો", delete: "કાઢી નાખો",
         placeholder: "નવું નામ દાખલ કરો...", result: "પરિણામ", close: "બંધ કરો", cancel: "રદ કરો", confirm: "પુષ્ટિ કરો",
-        confirm_del: "શું તમે ખરેખર આ ચક્ર કાઢી નાખવા માંગો છો?", 
-        toast_shuffle: "યાદી ચીતરી દેવામાં આવી", 
+        confirm_del: "શું તમે ખરેખર આ ચક્ર કાઢી નાખવા માંગો છો?", remove_this: "આ આઇટમ દૂર કરો",
+        toast_shuffle: "યાદી ચીતરી દેવામાં આવી", designed_by: "દ્વારા ડિઝાઇન",
         toast_sort: "યાદી ક્રમમાં ગોઠવાઈ ગઈ", 
         toast_rename: "નામ બદલીને કરવામાં આવ્યું", 
         empty: "ખાલી", undo: "રદ કરો",
@@ -1463,8 +1476,8 @@ const i18n = {
         select_lang: "மொழி", recommended: "பரிந்துரைக்கப்பட்டது", all_languages: "அனைத்து மொழிகளும்",
         spin: "சுழற்ற கிளிக் செய்யவும்", shuffle: "கலக்கு", sort: "வரிசையாக்கு", rename: "மறுபெயரிடு", delete: "நீக்கு",
         placeholder: "புதிய பெயரை உள்ளிடுக...", result: "முடிவு", close: "மூடு", cancel: "ரத்து", confirm: "உறுதி",
-        confirm_del: "இந்த சக்கரத்தை நீக்க விரும்புகிறீர்களா?", 
-        toast_shuffle: "பட்டியல் கலக்கப்பட்டது", 
+        confirm_del: "இந்த சக்கரத்தை நீக்க விரும்புகிறீர்களா?", remove_this: "இந்த உருப்படியை அகற்று",
+        toast_shuffle: "பட்டியல் கலக்கப்பட்டது", designed_by: "வடிவமைத்தவர்",
         toast_sort: "பட்டியல் வரிசையாக்கப்பட்டது", 
         toast_rename: "மறுபெயரிடப்பட்டது", 
         empty: "காலி", undo: "முன்னுக்குத் திருப்பு",
@@ -1479,8 +1492,8 @@ const i18n = {
         select_lang: "ಭಾಷೆ", recommended: "ಶಿಫಾರಸು", all_languages: "ಎಲ್ಲಾ ಭಾಷೆಗಳು",
         spin: "ತಿರುಗಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ", shuffle: "ಶಫಲ್", sort: "ವಿಂಗಡಿಸು", rename: "ಮರುಹೆಸರಿಸು", delete: "ಅಳಿಸು",
         placeholder: "ಹೊಸ ಹೆಸರನ್ನು ನಮೂದಿಸಿ...", result: "ಫಲಿತಾಂಶ", close: "ಮುಚ್ಚಿ", cancel: "ರದ್ದು", confirm: "ದೃಢೀಕರಿಸಿ",
-        confirm_del: "ಈ ಚಕ್ರವನ್ನು ಅಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿದ್ದೀರಾ?", 
-        toast_shuffle: "ಪಟ್ಟಿಯನ್ನು ಶಫಲ್ ಮಾಡಲಾಗಿದೆ", 
+        confirm_del: "ಈ ಚಕ್ರವನ್ನು ಅಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿದ್ದೀರಾ?", remove_this: "ಈ ಐಟಂ ಅನ್ನು ತೆಗೆದುಹಾಕಿ",
+        toast_shuffle: "ಪಟ್ಟಿಯನ್ನು ಶಫಲ್ ಮಾಡಲಾಗಿದೆ", designed_by: "ವಿನ್ಯಾಸಗೊಳಿಸಿದವರು",
         toast_sort: "ಪಟ್ಟಿಯನ್ನು ವಿಂಗಡಿಸಲಾಗಿದೆ", 
         toast_rename: "ಮರುಹೆಸರಿಸಲಾಗಿದೆ", 
         empty: "ಖಾಲಿ", undo: "ಹಿಂದಿರುಗಿಸು",
@@ -1495,8 +1508,8 @@ const i18n = {
         select_lang: "ഭാഷ", recommended: "ശുപാർശ ചെയ്തത്", all_languages: "എല്ലാ ഭാഷകളും",
         spin: "കറങ്ങാൻ ക്ലിക്ക് ചെയ്യുക", shuffle: "ഷഫിൾ", sort: "ക്രമീകരിക്കുക", rename: "പുനർനാമകരണം", delete: "ഇല്ലാതാക്കുക",
         placeholder: "പുതിയ പേര് നൽകുക...", result: "ഫലം", close: "അടയ്ക്കുക", cancel: "റദ്ദാക്കുക", confirm: "സ്ഥിരീകരിക്കുക",
-        confirm_del: "ഈ ചക്രം ഇല്ലാതാക്കണമെന്ന് താങ്കൾക്ക് ഉറപ്പുണ്ടോ?", 
-        toast_shuffle: "ലിസ്റ്റ് ഷഫിൾ ചെയ്തു", 
+        confirm_del: "ഈ ചക്രം ഇല്ലാതാക്കണമെന്ന് താങ്കൾക്ക് ഉറപ്പുണ്ടോ?", remove_this: "ഈ ഇനം നീക്കംചെയ്യുക",
+        toast_shuffle: "ലിസ്റ്റ് ഷഫിൾ ചെയ്തു", designed_by: "രൂപകൽപ്പന ചെയ്തത്",
         toast_sort: "ലിസ്റ്റ് ക്രമീകരിച്ചു", 
         toast_rename: "പുനർനാമകരണം നൽകി", 
         empty: "ശൂന്യം", undo: "പഴയപടിയാക്കുക",
@@ -1511,8 +1524,8 @@ const i18n = {
         select_lang: "ภาษา", recommended: "แนะนำ", all_languages: "ทุกภาษา",
         spin: "คลิกเพื่อหมุน", shuffle: "สับเปลี่ยน", sort: "เรียงลำดับ", rename: "เปลี่ยนชื่อ", delete: "ลบ",
         placeholder: "ป้อนชื่อใหม่...", result: "ผลลัพธ์", close: "ปิด", cancel: "ยกเลิก", confirm: "ยืนยัน",
-        confirm_del: "คุณแน่ใจหรือไม่ว่าต้องการลวงล้อนี้?", 
-        toast_shuffle: "สับเปลี่ยนรายการเรียบร้อย", 
+        confirm_del: "คุณแน่ใจหรือไม่ว่าต้องการลวงล้อนี้?", remove_this: "ลบรายการนี้",
+        toast_shuffle: "สับเปลี่ยนรายการเรียบร้อย", designed_by: "ออกแบบโดย",
         toast_sort: "เรียงลำดับรายการเรียบร้อย", 
         toast_rename: "เปลี่ยนชื่อเป็น", 
         empty: "ว่าง", undo: "เลิกทำ",
@@ -1527,8 +1540,8 @@ const i18n = {
         select_lang: "ພາສາ", recommended: "ແນະນຳ", all_languages: "ທຸກພາສາ",
         spin: "ຄລິກເພື່ອໝຸນ", shuffle: "ສະຫຼັບ", sort: "ຈັດລຽງ", rename: "ປ່ຽນຊື່", delete: "ລຶບ",
         placeholder: "ປ້ອນຊື່ໃໝ່...", result: "ຜົນໄດ້ຮັບ", close: "ປິດ", cancel: "ຍົກເລີກ", confirm: "ຢືນຢັນ",
-        confirm_del: "ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລຶບວົງລໍ້ນີ້?", 
-        toast_shuffle: "ລາຍການຖືກສະຫຼັບແລ້ວ", 
+        confirm_del: "ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລຶບວົງລໍ້ນີ້?", remove_this: "ລຶບລາຍການນີ້",
+        toast_shuffle: "ລາຍການຖືກສະຫຼັບແລ້ວ", designed_by: "ອອກແບບໂດຍ",
         toast_sort: "ລາຍການຖືກຈັດລຽບແລ້ວ", 
         toast_rename: "ປ່ຽນຊື່ເປັນ", 
         empty: "ຫວ່າງ", undo: "ກັບຄືນ",
@@ -1543,8 +1556,8 @@ const i18n = {
         select_lang: "ဘာသာစကား", recommended: "အကြံပြုထားသည်", all_languages: "ဘာသာစကားအားလုံး",
         spin: "လှည့်ရန် နှိပ်ပါ", shuffle: "ကျပန်းစီရန်", sort: "စီရန်", rename: "အမည်ပြောင်းရန်", delete: "ဖျက်ရန်",
         placeholder: "အမည်အသစ်ထည့်ပါ...", result: "ရလဒ်", close: "ပိတ်ရန်", cancel: "မလုပ်တော့ပါ", confirm: "အတည်ပြုရန်",
-        confirm_del: "ဤဘီးကို ဖျက်ရန် သေချာပါသလား?", 
-        toast_shuffle: "စာရင်းအား ကျပန်းစီပြီးပြီ", 
+        confirm_del: "ဤဘီးကို ဖျက်ရန် သေချာပါသလား?", remove_this: "ဤအကြောင်းအရာကို ဖယ်ရှားရန်",
+        toast_shuffle: "စာရင်းအား ကျပန်းစီပြီးပြီ", designed_by: "ဒီဇိုင်းထုတ်သူ",
         toast_sort: "စာရင်းအား စီပြီးပြီ", 
         toast_rename: "အမည်ပြောင်းပြီးပါပြီ", 
         empty: "ဗလာ", undo: "နောက်ပြန်",
@@ -1559,8 +1572,8 @@ const i18n = {
         select_lang: "언어", recommended: "추천", all_languages: "모든 언어",
         spin: "클릭하여 돌리기", shuffle: "섞기", sort: "정렬", rename: "이름 변경", delete: "삭제",
         placeholder: "새 이름 입력...", result: "결과", close: "닫기", cancel: "취소", confirm: "확인",
-        confirm_del: "이 휠을 삭제하시겠습니까?", 
-        toast_shuffle: "목록이 섞였습니다", 
+        confirm_del: "이 휠을 삭제하시겠습니까?", remove_this: "이 항목 제거",
+        toast_shuffle: "목록이 섞였습니다", designed_by: "디자인",
         toast_sort: "목록이 정렬되었습니다", 
         toast_rename: "이름이 로 변경되었습니다", 
         empty: "비어 있음", undo: "실행 취소",
@@ -1575,8 +1588,8 @@ const i18n = {
         select_lang: "言語", recommended: "おすすめ", all_languages: "すべての言語",
         spin: "クリックして回す", shuffle: "シャッフル", sort: "並べ替え", rename: "名前を変更", delete: "削除",
         placeholder: "新しい名前を入力...", result: "結果", close: "閉じる", cancel: "キャンセル", confirm: "確認",
-        confirm_del: "このホイールを削除してもよろしいですか？", 
-        toast_shuffle: "リストをシャッフルしました", 
+        confirm_del: "このホイールを削除してもよろしいですか？", remove_this: "この項目を削除",
+        toast_shuffle: "リストをシャッフルしました", designed_by: "デザイン",
         toast_sort: "リストを並べ替えました", 
         toast_rename: "名前を に変更しました", 
         empty: "空です", undo: "元に戻す",
@@ -1591,8 +1604,8 @@ const i18n = {
         select_lang: "语言", recommended: "推荐", all_languages: "所有语言",
         spin: "点击旋转", shuffle: "随机打乱", sort: "排序", rename: "重命名", delete: "删除",
         placeholder: "输入新名称...", result: "结果", close: "关闭", cancel: "取消", confirm: "确认",
-        confirm_del: "确定要删除这个转盘吗？", 
-        toast_shuffle: "列表已打乱", 
+        confirm_del: "确定要删除这个转盘吗？", remove_this: "删除此项",
+        toast_shuffle: "列表已打乱", designed_by: "设计者",
         toast_sort: "列表已排序", 
         toast_rename: "已重命名为", 
         empty: "空", undo: "撤销",
@@ -1607,8 +1620,8 @@ const i18n = {
         select_lang: "語言", recommended: "推薦", all_languages: "所有語言",
         spin: "點擊旋轉", shuffle: "隨機打亂", sort: "排序", rename: "重新命名", delete: "刪除",
         placeholder: "輸入新名稱...", result: "結果", close: "關閉", cancel: "取消", confirm: "確認",
-        confirm_del: "確定要刪除這個轉盤嗎？", 
-        toast_shuffle: "清單已打亂", 
+        confirm_del: "確定要刪除這個轉盤嗎？", remove_this: "刪除此項",
+        toast_shuffle: "清單已打亂", designed_by: "設計者",
         toast_sort: "清單已排序", 
         toast_rename: "已重新命名為", 
         empty: "空白", undo: "復原",
@@ -1655,9 +1668,11 @@ function setLanguage(lang, isAuto = false) {
 
     // Dịch các nhãn giao diện (giữ nguyên code cũ của bạn)
     document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (i18n[lang][key]) el.innerText = i18n[lang][key];
-    });
+            const key = el.getAttribute('data-i18n');
+            if (i18n[lang] && i18n[lang][key]) {
+                el.innerText = i18n[lang][key];
+            }
+        });
 
     // 2. LOGIC QUAN TRỌNG: Dịch nội dung bánh xe nếu là mặc định
     wheels.forEach(wheel => {
@@ -1914,9 +1929,11 @@ function undoDelete(event, btnElement) {
     });
 }
 
-    function spinWheel() {
-    const items = wheels.find(x => x.id === activeId).items;
-    if (isSpinning || items.length < 2) return;
+function spinWheel() {
+    const wheel = wheels.find(x => x.id === activeId);
+    const items = wheel.items.length > 0 ? wheel.items : [i18n[currentLang].empty]; // Đảm bảo luôn có ít nhất 1 phần tử
+    
+    if (isSpinning || items.length < 2) return; 
     isSpinning = true;
     document.getElementById('guide-overlay').style.opacity = 0;
     
@@ -1939,7 +1956,7 @@ function undoDelete(event, btnElement) {
         if (window.lastTickIdx !== currentTickIdx) {
             const pointer = document.getElementById("pointer");
             pointer.classList.add('pointer-tick');
-            ssetTimeout(() => pointer.classList.remove('pointer-tick'), 100);
+            setTimeout(() => pointer.classList.remove('pointer-tick'), 100); // Đã xóa chữ 's' thừa
             window.lastTickIdx = currentTickIdx;
         }
         // ------------------------------------------
@@ -1951,23 +1968,44 @@ function undoDelete(event, btnElement) {
     requestAnimationFrame(animate);
 }
 
-    function finishSpin() {
-        isSpinning = false;
-        document.getElementById('guide-overlay').style.opacity = 1;
-        const items = wheels.find(x => x.id === activeId).items;
-        const arc = (Math.PI * 2) / items.length;
-        const winningAngle = (Math.PI * 2 - (currentAngle % (Math.PI * 2))) % (Math.PI * 2);
-        const index = Math.floor(winningAngle / arc) % items.length;
-        document.getElementById('winner-name').innerText = items[index];
-        document.getElementById('winner-overlay').classList.replace('hidden', 'flex');
-        setTimeout(() => document.getElementById('winner-card').style.transform = 'scale(1)', 50);
-        confetti({ 
-            particleCount: 250, 
-            spread: 100, 
-            origin: { y: 0.6 },
-            zIndex: 10000 // Thêm dòng này để pháo hoa bay đè lên trên Modal
-        });
+function finishSpin() {
+    isSpinning = false;
+    document.getElementById('guide-overlay').style.opacity = 1;
+    const items = wheels.find(x => x.id === activeId).items;
+    const arc = (Math.PI * 2) / items.length;
+    const winningAngle = (Math.PI * 2 - (currentAngle % (Math.PI * 2))) % (Math.PI * 2);
+    const index = Math.floor(winningAngle / arc) % items.length;
+
+    lastWinnerIndex = index; // LƯU VỊ TRÍ TRÚNG VÀO ĐÂY
+
+    document.getElementById('winner-name').innerText = items[index];
+    document.getElementById('winner-overlay').classList.replace('hidden', 'flex');
+    setTimeout(() => document.getElementById('winner-card').style.transform = 'scale(1)', 50);
+    confetti({ 
+        particleCount: 250, 
+        spread: 100, 
+        origin: { y: 0.6 },
+        zIndex: 10000 
+    });
+}
+
+function removeWinnerAndClose() {
+    const wheel = wheels.find(x => x.id === activeId);
+    if (lastWinnerIndex > -1 && wheel.items.length > 0) {
+        const deletedName = wheel.items[lastWinnerIndex];
+        
+        // Xóa phần tử tại vị trí đã lưu
+        wheel.items.splice(lastWinnerIndex, 1);
+        
+        // Cập nhật lại giao diện
+        loadActive(); 
+        draw();
+        
+        // Hiển thị thông báo đã xóa
+        showToast(`ĐÃ XÓA: ${deletedName}`, "undo");
     }
+    closeWinner();
+}
 
     function closeWinner() {
         document.getElementById('winner-card').style.transform = 'scale(0)';
@@ -2125,9 +2163,12 @@ function sortList() {
     <p class="text-[9px] text-slate-500/80 uppercase tracking-[2px] text-center flex items-center justify-center gap-2">
         <span>© 2026</span> 
         <span class="w-[1px] h-2 bg-white/10"></span> 
-        <span>Thiết kế bởi <b class="text-indigo-400/70 font-extrabold">Cao Nguyễn Hồng Phi</b></span>
+        <span>
+            <!-- Phần này sẽ thay đổi theo ngôn ngữ -->
+            <span data-i18n="designed_by">Thiết kế bởi</span> 
+            <b class="text-indigo-400/70 font-extrabold">Cao Nguyễn Hồng Phi</b>
+        </span>
     </p>
-    
 </div>
 
 </body>
