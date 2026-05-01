@@ -167,7 +167,7 @@
             clip-path: polygon(0 50%, 100% 0, 80% 50%, 100% 100%);
             filter: drop-shadow(-5px 0 15px rgba(255, 255, 255, 0.3));
             transform-origin: 100% 50% !important; 
-            transition: transform 0.05s cubic-bezier(0.1, 0.9, 0.2, 1);
+            transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.3, 1); 
             will-change: transform;
         }
 
@@ -198,7 +198,8 @@
             100% { background-position: 0% 50%; }
         }
         .pointer-tick {
-            transform: rotate(-20deg) !important; /* Mũi nhọn bên trái sẽ hất lên trên */
+            /* Giảm góc nẩy từ -20deg xuống -12deg để trông thanh thoát hơn */
+            transform: rotate(-12deg) !important; 
         }
 
         .guide-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20; pointer-events: none; }
@@ -518,19 +519,14 @@ function checkTick(items) {
 
     if (currentTickIndex !== window.lastTickIndex) {
         const pointer = document.getElementById("pointer");
-        
-        // Loại bỏ class cũ để reset hiệu ứng
         pointer.classList.remove('pointer-tick');
-        
-        // Thủ thuật ép trình duyệt render lại (Reflow) để nảy liên tục không bị mất nhịp
         void pointer.offsetWidth; 
-        
         pointer.classList.add('pointer-tick');
         
-        // Gỡ class nhanh (sau 50ms) để mũi tên đập xuống ngay lập tức
+        // Đổi từ 50 thành 100
         setTimeout(() => {
             pointer.classList.remove('pointer-tick');
-        }, 50);
+        }, 250); 
         
         window.lastTickIndex = currentTickIndex;
     }
@@ -1943,7 +1939,7 @@ function undoDelete(event, btnElement) {
         if (window.lastTickIdx !== currentTickIdx) {
             const pointer = document.getElementById("pointer");
             pointer.classList.add('pointer-tick');
-            setTimeout(() => pointer.classList.remove('pointer-tick'), 50);
+            ssetTimeout(() => pointer.classList.remove('pointer-tick'), 100);
             window.lastTickIdx = currentTickIdx;
         }
         // ------------------------------------------
