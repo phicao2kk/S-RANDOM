@@ -158,16 +158,29 @@
         .pointer-arrow {
             width: 70px; 
             height: 50px; 
-            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff);
-            background-size: 400% 400%;
-            animation: rainbow-move 3s linear infinite;
+            /* Dải màu 7 sắc lặp lại */
+            background: linear-gradient(to right, 
+                #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff, #ff0000);
+            background-size: 200% 100%; 
+            /* Chạy 1 chiều từ Trái sang Phải */
+            animation: rainbow-reverse 2s linear infinite; 
             clip-path: polygon(0 50%, 100% 0, 80% 50%, 100% 100%);
             filter: drop-shadow(-5px 0 15px rgba(255, 255, 255, 0.3));
             transform-origin: 100% 50% !important; 
-            transform: rotate(0deg);
             transition: transform 0.05s cubic-bezier(0.1, 0.9, 0.2, 1);
             will-change: transform;
         }
+
+        /* Hiệu ứng chạy ngược lại: Trái sang Phải */
+        @keyframes rainbow-reverse {
+            0% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 200% 0%;
+            }
+        }
+
         /* ĐIỀU CHỈNH RIÊNG CHO MOBILE (Dưới 1024px) */
         @media (max-width: 1024px) {
             .pointer-wrapper {
