@@ -32,7 +32,7 @@
     <meta name="theme-color" content="#020617">
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>S-RANDOM Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -455,6 +455,44 @@
 </div>
 
 <script>
+
+/* ============================================================
+   ANTI-DEBUG & REDIRECT TO ABOUT:BLANK
+   ============================================================ */
+
+// 1. Chặn các phím tắt và chuyển hướng sang about:blank
+document.addEventListener('keydown', function (e) {
+    // F12
+    if (e.keyCode === 123) {
+        window.location.href = "about:blank";
+        e.preventDefault();
+    }
+    // Ctrl+Shift+I (Inspect Element)
+    // Ctrl+Shift+J (Console)
+    // Ctrl+Shift+C (Element Selector)
+    if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) {
+        window.location.href = "about:blank";
+        e.preventDefault();
+    }
+    // Ctrl+U (View Source)
+    if (e.ctrlKey && e.keyCode === 85) {
+        window.location.href = "about:blank";
+        e.preventDefault();
+    }
+}, false);
+
+// 2. Chặn chuột phải (để không chọn được "Kiểm tra")
+document.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+}, false);
+
+// 3. (Nâng cao) Tự động chuyển hướng nếu phát hiện bảng Console mở (chống lách luật)
+let devtools = function() {};
+devtools.toString = function() {
+    window.location.href = "about:blank";
+}
+// Thỉnh thoảng trình duyệt sẽ gọi toString của hàm khi console được mở
+// console.log('%c', devtools);
 
 let lastTickAngle = 0; // Theo dõi góc để bắt nhịp tick
 
