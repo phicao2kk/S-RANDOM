@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <!-- Kết nối Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Đăng ký Service Worker -->
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('S-RANDOM PWA Ready!', reg))
+            .catch(err => console.log('PWA Error', err));
+        });
+    }
+    </script>
     <!-- 1. Icon cho iPhone/iPad (iOS) -->
     <link rel="apple-touch-icon" href="https://i.ibb.co/CpjJQtd8/S-RANDOM.png">
 
