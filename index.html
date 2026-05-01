@@ -1672,7 +1672,8 @@ function filterLanguages() {
 function closeLangModal() {
     document.getElementById('lang-overlay').classList.replace('flex', 'hidden');
 }
-
+    
+let lastDeletedWheel = null;
     let wheels = [
         { 
             id: 1, 
@@ -1727,7 +1728,7 @@ function closeLangModal() {
         draw();
     }
 
-    function showToast(message, type = 'success') {
+function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = 'elite-toast';
@@ -1735,15 +1736,16 @@ function closeLangModal() {
     let icon = 'fa-check-circle';
     if(type === 'shuffle') icon = 'fa-shuffle';
     if(type === 'sort') icon = 'fa-sort-alpha-down';
-    if(type === 'undo') icon = 'fa-trash-can'; // Icon cho thông báo xóa
+    if(type === 'undo') icon = 'fa-trash-can'; 
     if(type === 'error') { icon = 'fa-triangle-exclamation'; toast.style.borderLeftColor = '#fb7185'; }
 
-    // Phần nội dung thông báo
     let actionBtnHtml = '';
+    // Nếu là thông báo xóa, tăng thời gian chờ lên 6 giây để người dùng kịp bấm
+    let duration = type === 'undo' ? 4000 : 2000;
+
     if(type === 'undo') {
-        // Tạo nút Khôi phục nếu loại thông báo là 'undo'
         actionBtnHtml = `
-            <button onclick="undoDelete(this)" class="ml-auto bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border border-white/10">
+            <button onclick="undoDelete(event, this)" class="ml-auto bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border border-white/10">
                 ${i18n[currentLang].undo}
             </button>
         `;
@@ -1756,34 +1758,60 @@ function closeLangModal() {
             <div class="text-sm font-bold tracking-wide">${message}</div>
         </div>
         ${actionBtnHtml}
-        <div class="toast-progress"></div>
+        <div class="toast-progress" style="animation-duration: ${duration}ms"></div>
     `;
 
     container.appendChild(toast);
 
-    setTimeout(() => {
-        if(toast) {
-            toast.classList.add('toast-exit');
-            setTimeout(() => toast.remove(), 500);
-        }
-    }, 4000); // Tăng thời gian lên 4 giây để người dùng kịp bấm
+    // --- LOGIC QUAN TRỌNG: DỪNG TỰ ĐỘNG ĐÓNG KHI CHẠM ---
+    let autoCloseTimeout = setTimeout(() => {
+        closeToast(toast);
+    }, duration);
+
+    // Khi di chuột hoặc chạm vào thông báo -> Hủy bỏ việc tự động đóng
+    toast.onmouseenter = toast.ontouchstart = () => {
+        clearTimeout(autoCloseTimeout);
+        const progress = toast.querySelector('.toast-progress');
+        if(progress) progress.style.animationPlayState = 'paused'; // Dừng thanh chạy
+    };
+
+    // Khi rời tay/chuột ra -> Bắt đầu đếm ngược lại (hoặc đóng ngay)
+    toast.onmouseleave = toast.ontouchend = () => {
+        autoCloseTimeout = setTimeout(() => closeToast(toast), 2000); // Chờ thêm 2s rồi đóng
+        const progress = toast.querySelector('.toast-progress');
+        if(progress) progress.style.animationPlayState = 'running';
+    };
+}
+
+// Hàm phụ để đóng thông báo mượt mà
+function closeToast(toast) {
+    if (toast && toast.parentNode) {
+        toast.classList.add('toast-exit');
+        setTimeout(() => toast.remove(), 500);
+    }
 }
 
 // HÀM XỬ LÝ KHÔI PHỤC
-function undoDelete(btnElement) {
+function undoDelete(event, btnElement) {
+    // Ngăn chặn sự kiện click lan ra ngoài làm đóng thông báo sai cách
+    if(event) event.stopPropagation();
+
     if (lastDeletedWheel) {
         wheels.push(lastDeletedWheel);
         activeId = lastDeletedWheel.id;
-        lastDeletedWheel = null; // Xóa bộ nhớ đệm
+        lastDeletedWheel = null; 
         
         renderTabs();
         loadActive();
         
-        // Đóng thông báo ngay lập tức
+        // Đóng thông báo hiện tại ngay lập tức
         const toast = btnElement.closest('.elite-toast');
-        toast.remove();
+        closeToast(toast);
         
-        showToast("ĐÃ KHÔI PHỤC THÀNH CÔNG", "success");
+        // Hiện thông báo thành công
+        setTimeout(() => {
+            showToast(i18n[currentLang].toast_undo_success, "success");
+        }, 100);
     }
 }
 
@@ -1940,7 +1968,7 @@ function deleteActiveWheel() {
         callback: () => {
             const index = wheels.findIndex(w => w.id === activeId);
             
-            // LƯU LẠI VÒNG QUAY VỪA XÓA ĐỂ KHÔI PHỤC
+            // Lưu lại để có thể khôi phục
             lastDeletedWheel = { ...wheels[index] }; 
             
             wheels.splice(index, 1);
@@ -1949,8 +1977,10 @@ function deleteActiveWheel() {
             renderTabs();
             loadActive();
             
-            // HIỆN THÔNG BÁO CÓ NÚT KHÔI PHỤC
-            showToast(i18n[currentLang].toast_undo_success, "success");
+            // SỬA TẠI ĐÂY: 
+            // 1. Dùng toast_delete để hiện chữ "ĐÃ XÓA"
+            // 2. Dùng type "undo" để hiện nút "Khôi phục"
+            showToast(i18n[currentLang].toast_delete, "undo");
         }
     });
 }
