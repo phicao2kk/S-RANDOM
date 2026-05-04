@@ -32,7 +32,7 @@
     <meta name="theme-color" content="#020617">
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>S-RANDOM Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -98,7 +98,8 @@
             min-height: 100dvh; 
             margin: 0;
             overflow-x: hidden;
-            overflow-y: auto; /* Cho phép cuộn để xem danh sách ở dưới */
+            overflow-y: auto;
+            touch-action: pan-x pan-y; /* THÊM DÒNG NÀY VÀO ĐÂY */
         }
 
         #modal-overlay, #winner-overlay, #lang-overlay {
@@ -2170,6 +2171,24 @@ function sortList() {
     // Gọi Toast hiện đại với icon sort
     showToast(i18n[currentLang].toast_sort, 'sort');
 }
+
+// 1. Chặn cử chỉ Zoom bằng 2 ngón tay (Pinch to zoom)
+document.addEventListener('touchmove', function (event) {
+    if (event.scale !== 1) { 
+        event.preventDefault(); 
+    }
+}, { passive: false });
+
+// 2. Chặn Double-tap to zoom (Chạm 2 lần để phóng to)
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function (event) {
+    let now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+    }
+    lastTouchEnd = now;
+}, false);
+
 </script>
 <div id="toast-container" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[2000] flex flex-col gap-2 pointer-events-none"></div>
 
