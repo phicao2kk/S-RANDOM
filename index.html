@@ -2021,7 +2021,7 @@ function addNewWheel() {
     // Tự động cộng thêm số thứ tự (ví dụ: BÁNH XE 2)
     const newName = `${baseName} ${wheels.length + 1}`;
     
-    // Lấy danh sách tên mặc định (ví dụ: Tên A, Tên B... hoặc Name A, Name B...)
+    // Lấy danh sách tên mặc định
     const newItems = [...i18n[currentLang].default_items];
 
     // Đẩy vào danh sách wheels
@@ -2037,9 +2037,24 @@ function addNewWheel() {
     renderTabs(); 
     loadActive();
     
+    // --- ĐOẠN CODE MỚI THÊM ĐỂ TỰ ĐỘNG CUỘN ---
+    setTimeout(() => {
+        const tabsList = document.getElementById('tabs-list');
+        const activeTab = tabsList.querySelector('.tab-btn.active');
+        if (activeTab) {
+            activeTab.scrollIntoView({ 
+                behavior: 'smooth', // Cuộn mượt mà
+                inline: 'center',   // Đưa tab vào giữa thanh cuộn
+                block: 'nearest' 
+            });
+        }
+    }, 50); // Chờ 50ms để DOM kịp cập nhật giao diện mới
+    // ------------------------------------------
+
     // Thông báo cho người dùng
     showToast(i18n[currentLang].add_wheel, 'success');
 }
+
 function deleteActiveWheel() {
     if (wheels.length <= 1) {
         showToast(i18n[currentLang].error_min_wheel, "error");
